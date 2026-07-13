@@ -13,8 +13,9 @@ proxy a Sleeper backend — taste-maker is its **own system of record**: it owns
 second, writable D1 database with migrations and server routes that
 INSERT/UPDATE.
 
-Live (once the domain is bound): **https://taste.phareim.no**, behind Reader's
-login.
+Live: **https://taste.phareim.no**, behind Reader's login. (Deployed via
+GitHub Actions on 2026-07-13; the `taste.phareim.no` custom domain was bound
+by the CI Cloudflare token.)
 
 ## Why this is not "SFL with a skin"
 
