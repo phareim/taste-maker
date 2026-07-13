@@ -16,7 +16,7 @@ database_id = "2ccea3e6-cd78-45f5-9395-1094f964b273"
 [[d1_databases]]
 binding = "TASTE_DB"
 database_name = "taste-maker"
-database_id = "TODO_FILL_AFTER_D1_CREATE"
+database_id = "1ce61298-32ff-4714-bda7-b151bc9a9779"
 migrations_dir = "migrations"
 
 [[routes]]
