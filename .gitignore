@@ -1,0 +1,8 @@
+node_modules
+.nuxt
+.output
+.env
+.env.*
+dist
+.DS_Store
+.wrangler

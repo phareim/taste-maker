@@ -1,0 +1,22 @@
+{
+  "name": "taste-maker",
+  "version": "1.0.0",
+  "description": "A personal taste library — capture, connect, and refine a palette of quotes, references, music, and art",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phareim/taste-maker.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "date-fns": "^4.1.0",
+    "nuxt": "^3.17.7"
+  }
+}

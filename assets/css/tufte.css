@@ -1,0 +1,135 @@
+@font-face {
+  font-family: 'et-book';
+  src: url('/tufte/fonts/et-book-roman.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'et-book';
+  src: url('/tufte/fonts/et-book-italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'et-book';
+  src: url('/tufte/fonts/et-book-bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Tufte Viz · Color tokens
+   The page is the canvas. Warm paper, warm ink, hairline rules — and exactly
+   ONE accent, crimson, spent at the single moment that deserves the eye.
+
+   Two layers:
+   1. --tufte-*  base tokens the chart recipes read directly (do not rename).
+   2. Semantic aliases (--text-*, --surface-*, --border-*) for UI chrome.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Paper — warm off-white surfaces ─────────────────────────────────── */
+  --paper:        #fbf9f4;  /* the page itself                              */
+  --paper-sunk:   #f4f1e9;  /* recessed wells, code blocks, table zebra     */
+  --paper-raised: #ffffff;  /* lifted cards / popovers on warm paper        */
+
+  /* ── Ink — the data and the words that name it ───────────────────────── */
+  --tufte-ink:    #111111;  /* primary data, headings, axis values          */
+  --tufte-muted:  #8a8a8a;  /* secondary data, ticks, range-frames, rugs    */
+  --tufte-faint:  #d8d8d4;  /* the quietest mark that still reads (gridrule) */
+  --ink-soft:     #4a473f;  /* body prose on paper (warm, not pure black)   */
+  --ink-quiet:    #6b675d;  /* captions, metadata, de-emphasised prose      */
+
+  /* ── Rules — hairline separators, warmer than the ink greys ──────────── */
+  --rule:         #e7e2d8;  /* default 1px divider on paper                 */
+  --rule-strong:  #d6cfc0;  /* a divider that needs to be felt              */
+
+  /* ── The one accent. Spend it once per view. ─────────────────────────── */
+  --tufte-accent: #c1351d;  /* the single highlighted point / current value */
+  --accent-ink:   #9a2a17;  /* accent text on paper (AA), pressed accent    */
+  --accent-wash:  #f3ddd6;  /* faintest crimson tint — selection, hot rows  */
+
+  /* ── The yellow pen. A deliberate second mark colour — a highlighter, not
+        the accent — for passages the reader chose to keep. ─────────────────── */
+  --highlight:    #fbe7a1;  /* warm yellow that sits on warm paper           */
+
+  /* ── Surface — charts paint no background of their own ───────────────── */
+  --tufte-bg:     transparent;
+
+  /* ── Semantic aliases — reference these in UI, not the raw values ────── */
+  --text-strong:      var(--tufte-ink);
+  --text-body:        var(--ink-soft);
+  --text-muted:       var(--ink-quiet);
+  --text-faint:       var(--tufte-muted);
+  --text-accent:      var(--accent-ink);
+  --text-on-accent:   #fbf9f4;
+
+  --surface-page:     var(--paper);
+  --surface-sunk:     var(--paper-sunk);
+  --surface-card:     var(--paper-raised);
+  --surface-accent:   var(--tufte-accent);
+
+  --border-rule:      var(--rule);
+  --border-strong:    var(--rule-strong);
+  --border-accent:    var(--tufte-accent);
+
+  /* Status — used sparingly; the brand resists semantic color. Greys do
+     most of the work; these exist only where a true judgement is encoded. */
+  --signal-up:    #2f6b3d;  /* gain / positive delta (muted forest)         */
+  --signal-down:  var(--accent-ink); /* loss reuses the crimson family      */
+}
+
+/* Midnight paper — dark mode via system preference. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --paper:        #14130f;
+  --paper-sunk:   #1d1b16;
+  --paper-raised: #1d1b16;
+
+  --tufte-ink:    #ececec;
+  --tufte-muted:  #8f8f8f;
+  --tufte-faint:  #333130;
+  --ink-soft:     #cfcabe;
+  --ink-quiet:    #9b968a;
+
+  --rule:         #322f29;
+  --rule-strong:  #43403a;
+
+  --tufte-accent: #ff6b4a;
+  --accent-ink:   #ff8a6e;
+  --accent-wash:  #2a1a14;
+
+  --highlight:    #5a4a1e;  /* dimmer pen on midnight paper */
+
+  --signal-up:    #6cae7e;
+  --signal-down:  var(--accent-ink);
+
+  /* aliases, re-resolved against the dark base tokens above */
+  --text-strong:    var(--tufte-ink);
+  --text-body:      var(--ink-soft);
+  --text-muted:     var(--ink-quiet);
+  --text-faint:     var(--tufte-muted);
+  --text-accent:    var(--accent-ink);
+  --text-on-accent: #14130f;
+
+  --surface-page:   var(--paper);
+  --surface-sunk:   var(--paper-sunk);
+  --surface-card:   var(--paper-raised);
+  --surface-accent: var(--tufte-accent);
+
+  --border-rule:    var(--rule);
+  --border-strong:  var(--rule-strong);
+  --border-accent:  var(--tufte-accent);
+}
+}
+
+html {
+  background: var(--surface-page);
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

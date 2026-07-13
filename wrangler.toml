@@ -1,0 +1,30 @@
+name = "taste-maker"
+main = ".output/server/index.mjs"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat_v2"]
+
+[site]
+bucket = ".output/public"
+
+# Reader's DB — read-only session validation. Reader owns the schema.
+[[d1_databases]]
+binding = "DB"
+database_name = "reader-service"
+database_id = "2ccea3e6-cd78-45f5-9395-1094f964b273"
+
+# taste-maker's OWN writable DB. database_id filled after `wrangler d1 create` (Task 20).
+[[d1_databases]]
+binding = "TASTE_DB"
+database_name = "taste-maker"
+database_id = "TODO_FILL_AFTER_D1_CREATE"
+migrations_dir = "migrations"
+
+[[routes]]
+pattern = "taste.phareim.no"
+zone_name = "phareim.no"
+custom_domain = true
+
+[vars]
+NUXT_ALLOWED_USER_EMAILS = "phareim@gmail.com"
+
+# Secret (wrangler secret put): NVIDIA_API_KEY — NIM embeddings bearer.

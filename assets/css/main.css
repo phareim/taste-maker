@@ -1,0 +1,29 @@
+/* App-level overrides on top of the Tufte base layer. */
+
+/* Interactive mono-labels get a visible focus ring in the accent. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 1px solid var(--tufte-accent);
+  outline-offset: 2px;
+}
+
+/* Hairline-underlined text inputs, the Reader convention. */
+.tufte-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border-rule);
+  color: var(--text-strong);
+  font-family: 'et-book', Charter, Georgia, serif;
+  font-size: 16px;
+  line-height: 1.55;
+  padding: 6px 0;
+  outline: none;
+}
+.tufte-input:focus {
+  border-bottom-color: var(--tufte-accent);
+  outline: none;
+}
