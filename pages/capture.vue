@@ -97,7 +97,7 @@ const imageUrl = ref('')
 const submitting = ref(false)
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 
-const bodyLabel = computed(() => (kind.value === 'quote' ? 'Quote' : kind.value === 'art' ? 'Description' : 'Body'))
+const bodyLabel = computed(() => (kind.value === 'quote' ? 'Quote' : kind.value === 'art' ? 'Description' : kind.value === 'music' ? 'Track' : 'Body'))
 const bodyPlaceholder = computed(() => {
   switch (kind.value) {
     case 'quote': return 'The words themselves — required'

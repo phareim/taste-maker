@@ -4,7 +4,7 @@
       <MonoLabel dash>Palette</MonoLabel>
       <h1 class="mt-1 text-3xl">The refined canon</h1>
       <p v-if="loaded" class="mt-2 text-mute">
-        {{ canonItems.length }} kept, out of everything captured.
+        {{ canonItems.length }} kept out of everything captured.
       </p>
     </header>
     <HairlineRule class="mt-6" />
