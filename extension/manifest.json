@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "taste-maker capture",
+  "version": "1.0.0",
+  "description": "Capture quotes, references, music, and art to taste.phareim.no without leaving the page.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoOq9D1qs3WyMzYJ1/AwvQdBAYFW/C+tkE7DUR4C93BMqiQx1e3hAHPiGE0R7Y9m1CXGODyL0Il5YfsLGxtQQbuH2ZX9/O3ZcZ9/d/m1GtxJe3Aft0G776wadu7eEvNuRBDoESIsEhlplE7zXBPoX0AgIVyFBvgKWnZZiz50UkPnjUWH8Ut5VEUzOATI9pA1CRtbXmskEIML7wHAXo7n17951oHTOZ2WrpAe4t1xuaTS/CXH2OXKCl1jg7PJ0SESrGIbgyjIUbLcH8dqItFMtimD7mmZGRFxQSyNC64gx7YAVO2VoAW4OvuAmCrB7Ykn8WIPfAFn8ue5aK0HG0oH6awIDAQAB",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "permissions": ["storage", "contextMenus", "activeTab", "scripting"],
+  "host_permissions": ["https://taste.phareim.no/*"]
+}

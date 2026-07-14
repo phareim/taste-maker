@@ -6,14 +6,23 @@ type CloudflareEnv = {
   TASTE_DB?: any
   NVIDIA_API_KEY?: string
   TASTE_INGEST_KEY?: string
+  TASTE_EXTENSION_KEY?: string
 }
 
-// Bearer gate for the server-to-server ingest routes (Reader's highlight
-// mirror). Session auth doesn't apply there — the caller is a Worker, not a
-// browser. 503 when the key is unset (feature off), 401 on mismatch.
-export const requireIngestKey = (event: any) => {
+// Bearer gate for the server-to-server / extension ingest routes. Session
+// auth doesn't apply there — the caller is a Worker or a browser extension,
+// not a browser holding a Reader cookie. `envKey` selects which secret to
+// check: Reader's highlight mirror uses TASTE_INGEST_KEY, the Chrome
+// extension uses its own TASTE_EXTENSION_KEY (separate trust boundary —
+// a key living in browser extension storage is more exposed than one in a
+// Worker's config, so it's independently rotatable). 503 when the selected
+// key is unset (feature off), 401 on mismatch.
+export const requireIngestKey = (
+  event: any,
+  envKey: 'TASTE_INGEST_KEY' | 'TASTE_EXTENSION_KEY' = 'TASTE_INGEST_KEY'
+) => {
   const env = event?.context?.cloudflare?.env as CloudflareEnv | undefined
-  const key = env?.TASTE_INGEST_KEY
+  const key = env?.[envKey]
   if (!key) {
     throw createError({ statusCode: 503, statusMessage: 'Ingest is not configured.' })
   }

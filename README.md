@@ -99,11 +99,42 @@ encounter in Reader, refine in taste-maker.
   mirrored item **only while untouched** (still `captured`, zero wins/losses,
   no connections); once refined or connected, the library owns it and the
   undo returns `{deleted: false, reason: 'touched'}`.
+- `POST /api/ingest/capture` — `{kind, title?, body, source_url?, creator?,
+  note?, image_url?}`. Same validation as `POST /api/items`. Used by the
+  Chrome extension (`extension/`) to capture from any page without a
+  browser session. Auth is `Authorization: Bearer <TASTE_EXTENSION_KEY>` —
+  a separate secret from `TASTE_INGEST_KEY` (extension-held keys are a
+  different trust boundary than Worker-held ones). CORS-scoped to the
+  extension's own fixed origin (see `server/utils/cors.ts`); handles its own
+  `OPTIONS` preflight.
 
-Auth: `Authorization: Bearer <TASTE_INGEST_KEY>` (Worker secret; host-side
-copy in `~/.config/taste/env`, shared with Reader as `NUXT_TASTE_INGEST_KEY`).
-503 when the secret is unset, 401 on mismatch. Reader's side of the pipe
-(mirror-on-create, undo-on-delete, backfill script) lives in the reader repo.
+Auth for `/api/ingest/highlight*`: `Authorization: Bearer <TASTE_INGEST_KEY>`
+(Worker secret; host-side copy in `~/.config/taste/env`, shared with Reader
+as `NUXT_TASTE_INGEST_KEY`). Auth for `/api/ingest/capture`:
+`Authorization: Bearer <TASTE_EXTENSION_KEY>` (separate Worker secret, held
+only by the Chrome extension). Both: 503 when the relevant secret is unset,
+401 on mismatch. Reader's side of the highlight pipe (mirror-on-create,
+undo-on-delete, backfill script) lives in the reader repo.
+
+## Chrome extension (`extension/`)
+
+A personal, unpublished Manifest V3 extension — load unpacked via
+`chrome://extensions` → Developer mode → Load unpacked → select `extension/`.
+Captures from any page without a browser session, via
+`POST /api/ingest/capture` (see above) rather than the session-gated
+`/api/items`.
+
+- **Toolbar icon** — opens a popup prefilled from the active tab: a text
+  selection on the page defaults to `kind=quote` with that selection as the
+  body; no selection defaults to `kind=reference`.
+- **Right-click a selection** → "Capture to taste library" → same popup,
+  `kind=quote`, prefilled with the selection.
+- **Right-click an image** → "Capture to taste library" → same popup,
+  `kind=art`, prefilled with the image URL.
+- **Setup**: open the extension's options page and paste the
+  `TASTE_EXTENSION_KEY` value (generated via `openssl rand -hex 32`, set on
+  the Worker via `wrangler secret put TASTE_EXTENSION_KEY`) — stored in
+  `chrome.storage.sync`.
 
 ## The refine ritual
 
@@ -186,7 +217,6 @@ Reader login at `taste.phareim.no`.
 - Claude-written rationale for items or connections
 - Active web discovery / search for new taste
 - SFL / sleeper-articles integration
-- Share-sheet / bookmarklet capture
 - Graph visualization of the connection web
 - R2 / file uploads (v1 hotlinks image URLs only)
 - Local D1 dev seed + offline story

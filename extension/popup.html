@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Capture</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <span class="label">Capture</span>
+  </header>
+
+  <div class="kinds" role="radiogroup" aria-label="Kind">
+    <button type="button" class="kind-btn" data-kind="quote">Quote</button>
+    <button type="button" class="kind-btn" data-kind="reference">Reference</button>
+    <button type="button" class="kind-btn" data-kind="music">Music</button>
+    <button type="button" class="kind-btn" data-kind="art">Art</button>
+  </div>
+
+  <form id="capture-form">
+    <label class="field">
+      <span class="label">Title</span>
+      <input type="text" id="title" placeholder="Optional short title" />
+    </label>
+
+    <label class="field">
+      <span class="label" id="body-label">Body</span>
+      <textarea id="body" rows="4" placeholder="Required"></textarea>
+    </label>
+
+    <label class="field" id="image-field">
+      <span class="label">Image URL</span>
+      <input type="url" id="image_url" placeholder="https://…" />
+    </label>
+
+    <label class="field">
+      <span class="label">Source URL</span>
+      <input type="url" id="source_url" placeholder="https://…" />
+    </label>
+
+    <label class="field">
+      <span class="label">Creator</span>
+      <input type="text" id="creator" placeholder="Author / artist / attribution" />
+    </label>
+
+    <label class="field">
+      <span class="label">Note</span>
+      <textarea id="note" rows="2" placeholder="Why it strikes me"></textarea>
+    </label>
+
+    <p id="status" class="status" hidden></p>
+
+    <footer>
+      <span class="hint">⌘⏎ to submit</span>
+      <button type="submit" id="submit-btn">Capture</button>
+    </footer>
+  </form>
+  <script src="popup.js"></script>
+</body>
+</html>
