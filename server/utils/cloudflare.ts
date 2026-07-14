@@ -5,6 +5,22 @@ type CloudflareEnv = {
   DB?: any
   TASTE_DB?: any
   NVIDIA_API_KEY?: string
+  TASTE_INGEST_KEY?: string
+}
+
+// Bearer gate for the server-to-server ingest routes (Reader's highlight
+// mirror). Session auth doesn't apply there — the caller is a Worker, not a
+// browser. 503 when the key is unset (feature off), 401 on mismatch.
+export const requireIngestKey = (event: any) => {
+  const env = event?.context?.cloudflare?.env as CloudflareEnv | undefined
+  const key = env?.TASTE_INGEST_KEY
+  if (!key) {
+    throw createError({ statusCode: 503, statusMessage: 'Ingest is not configured.' })
+  }
+  const header = event?.node?.req?.headers?.authorization ?? ''
+  if (header !== `Bearer ${key}`) {
+    throw createError({ statusCode: 401, statusMessage: 'Invalid ingest key.' })
+  }
 }
 
 export const getD1 = (event: any) => {

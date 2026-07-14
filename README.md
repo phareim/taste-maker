@@ -84,6 +84,27 @@ API (all gated by `requireAllowedUser`): `GET/POST /api/items`,
 `GET/POST /api/connections`, `DELETE /api/connections/[id]`,
 `GET /api/refine/pair`, `POST /api/refine/pick`, `GET /api/auth/session`.
 
+### Ingest (server-to-server, Bearer `TASTE_INGEST_KEY`)
+
+Reader mirrors every highlight here as a `quote` item — the one-way funnel:
+encounter in Reader, refine in taste-maker.
+
+- `POST /api/ingest/highlight` — `{highlight_id, quote, note?, source_url?, source_title?}`.
+  Idempotent on `external_ref = "reader-highlight:<id>"` (partial unique
+  index, migration 0002): re-sends and the backfill script return the
+  existing item (`created: false`) instead of duplicating. The article title
+  lands in `title`, the highlight note in `note`; embedding is computed
+  best-effort like any other capture.
+- `DELETE /api/ingest/highlight/[id]` — the Reader-side undo. Deletes the
+  mirrored item **only while untouched** (still `captured`, zero wins/losses,
+  no connections); once refined or connected, the library owns it and the
+  undo returns `{deleted: false, reason: 'touched'}`.
+
+Auth: `Authorization: Bearer <TASTE_INGEST_KEY>` (Worker secret; host-side
+copy in `~/.config/taste/env`, shared with Reader as `NUXT_TASTE_INGEST_KEY`).
+503 when the secret is unset, 401 on mismatch. Reader's side of the pipe
+(mirror-on-create, undo-on-delete, backfill script) lives in the reader repo.
+
 ## The refine ritual
 
 The heart of the app. `/refine` serves two `captured` items — **same kind by
