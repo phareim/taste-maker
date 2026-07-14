@@ -116,6 +116,26 @@ only by the Chrome extension). Both: 503 when the relevant secret is unset,
 401 on mismatch. Reader's side of the highlight pipe (mirror-on-create,
 undo-on-delete, backfill script) lives in the reader repo.
 
+## Chrome extension (`extension/`)
+
+A personal, unpublished Manifest V3 extension — load unpacked via
+`chrome://extensions` → Developer mode → Load unpacked → select `extension/`.
+Captures from any page without a browser session, via
+`POST /api/ingest/capture` (see above) rather than the session-gated
+`/api/items`.
+
+- **Toolbar icon** — opens a popup prefilled from the active tab: a text
+  selection on the page defaults to `kind=quote` with that selection as the
+  body; no selection defaults to `kind=reference`.
+- **Right-click a selection** → "Capture to taste library" → same popup,
+  `kind=quote`, prefilled with the selection.
+- **Right-click an image** → "Capture to taste library" → same popup,
+  `kind=art`, prefilled with the image URL.
+- **Setup**: open the extension's options page and paste the
+  `TASTE_EXTENSION_KEY` value (generated via `openssl rand -hex 32`, set on
+  the Worker via `wrangler secret put TASTE_EXTENSION_KEY`) — stored in
+  `chrome.storage.sync`.
+
 ## The refine ritual
 
 The heart of the app. `/refine` serves two `captured` items — **same kind by
@@ -197,7 +217,6 @@ Reader login at `taste.phareim.no`.
 - Claude-written rationale for items or connections
 - Active web discovery / search for new taste
 - SFL / sleeper-articles integration
-- Share-sheet / bookmarklet capture
 - Graph visualization of the connection web
 - R2 / file uploads (v1 hotlinks image URLs only)
 - Local D1 dev seed + offline story
