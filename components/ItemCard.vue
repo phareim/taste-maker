@@ -12,14 +12,16 @@
       isPalette ? 'palette-card' : '',
     ]"
   >
-    <!-- QUOTE — pull-quote typography, the loudest text treatment. -->
+    <!-- QUOTE — pull-quote typography, the loudest text treatment. Type size
+         steps down with length so the whole passage stays visible; a generous
+         line-clamp is the safety rail against multi-page pastes. -->
     <blockquote v-if="item.kind === 'quote'" :class="isPalette ? 'py-2' : 'p-4 sm:p-5'">
       <p
         :class="[
           'text-ink',
-          isCard ? 'text-base sm:text-lg leading-snug line-clamp-5' : '',
-          isLarge ? 'text-2xl sm:text-3xl leading-snug' : '',
-          isPalette ? 'text-2xl sm:text-3xl leading-snug text-center italic' : '',
+          isCard ? quoteCardClasses : '',
+          isLarge ? quoteLargeClasses : '',
+          isPalette ? [quotePaletteClasses, 'text-center italic'] : '',
         ]"
       ><span class="text-accent-ink mr-0.5" aria-hidden="true">&ldquo;</span>{{ item.body }}<span class="text-accent-ink ml-0.5" aria-hidden="true">&rdquo;</span></p>
       <footer
@@ -133,6 +135,29 @@ const isLarge = computed(() => props.variant === 'large')
 const isPalette = computed(() => props.variant === 'palette')
 // Palette reads as a constellation, not a grid — no card frame there.
 const framed = computed(() => !isPalette.value)
+
+// Quote type scale by passage length: short quotes keep the loud pull-quote
+// treatment; longer ones trade size for completeness. The clamp ceilings are
+// the "three whole pages" guard — roughly 1000+ visible chars before cutoff.
+const quoteTier = computed<'short' | 'medium' | 'long'>(() => {
+  const len = props.item.body?.length ?? 0
+  return len <= 180 ? 'short' : len <= 600 ? 'medium' : 'long'
+})
+const quoteCardClasses = computed(() => ({
+  short: 'text-base sm:text-lg leading-snug',
+  medium: 'text-sm sm:text-base leading-normal',
+  long: 'text-sm leading-normal',
+})[quoteTier.value] + ' line-clamp-[16]')
+const quoteLargeClasses = computed(() => ({
+  short: 'text-2xl sm:text-3xl leading-snug',
+  medium: 'text-xl sm:text-2xl leading-snug',
+  long: 'text-base sm:text-lg leading-normal',
+})[quoteTier.value])
+const quotePaletteClasses = computed(() => ({
+  short: 'text-2xl sm:text-3xl leading-snug',
+  medium: 'text-xl sm:text-2xl leading-snug',
+  long: 'text-base sm:text-lg leading-normal line-clamp-[12]',
+})[quoteTier.value])
 
 const imgFailed = ref(false)
 
