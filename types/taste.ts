@@ -2,7 +2,7 @@
 // Note: TasteItem deliberately has NO `embedding` field — that column never
 // leaves the server (see server/utils/tasteDb.ts ITEM_COLUMNS).
 
-export type Kind = 'quote' | 'reference' | 'music' | 'art'
+export type Kind = 'quote' | 'reference' | 'music' | 'art' | 'clothing'
 
 export type Status = 'captured' | 'canon' | 'archived'
 
