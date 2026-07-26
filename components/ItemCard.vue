@@ -94,6 +94,33 @@
       </div>
     </div>
 
+    <!-- CLOTHING — portrait product shot; brand pinned as a tag on the
+         image corner (like a garment size tag), title as headline below. -->
+    <div v-else-if="item.kind === 'clothing'">
+      <div class="relative bg-paper-sunk overflow-hidden aspect-[3/4]">
+        <img
+          v-if="item.image_url && !imgFailed"
+          :src="item.image_url"
+          :alt="item.title || item.body"
+          class="w-full h-full object-cover"
+          loading="lazy"
+          @error="imgFailed = true"
+        />
+        <div v-else class="w-full h-full flex items-center justify-center text-faint" style="font-size: 2rem;" aria-hidden="true">&#9638;</div>
+        <span
+          v-if="item.creator"
+          class="absolute top-2 left-2 bg-paper-raised/90 border border-rule-strong px-1.5 py-0.5 font-mono uppercase text-mute"
+          style="font-size: 9px; letter-spacing: 0.14em;"
+        >{{ item.creator }}</span>
+      </div>
+      <div :class="isPalette ? 'pt-2' : 'p-4 sm:p-5'">
+        <p v-if="item.title" class="text-ink" :class="isLarge ? 'text-xl' : ''">{{ item.title }}</p>
+        <p v-else class="text-body" :class="isCard ? 'line-clamp-2' : ''">{{ item.body }}</p>
+        <p v-if="item.title" class="mt-1 text-body" :class="isCard ? 'line-clamp-2' : ''">{{ item.body }}</p>
+        <p v-if="isLarge && item.note" class="mt-3 text-body italic">{{ item.note }}</p>
+      </div>
+    </div>
+
     <!-- REFERENCE — typed index-card row; deliberately un-quote, un-music. -->
     <div v-else :class="isPalette ? 'py-2 border-b border-rule' : 'p-4 sm:p-5'">
       <MonoLabel accent class="font-bold">Reference</MonoLabel>
