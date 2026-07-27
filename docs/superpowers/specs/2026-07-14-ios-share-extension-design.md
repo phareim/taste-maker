@@ -1,5 +1,7 @@
 # iOS Share Extension for taste-maker capture
 
+> **Note (2026-07-27):** Written before the fifth kind, `clothing`, shipped — treat every four-kind list below as five kinds, with `clothing` handled like `art` (image-led) plus a "Brand" creator label.
+
 Design spec. Companion to `docs/superpowers/specs/2026-07-14-chrome-extension-design.md`
 (the Chrome extension) — same job, different platform: capture a quote,
 reference, music, or art item into taste-maker from iOS's native Share

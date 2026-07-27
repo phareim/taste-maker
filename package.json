@@ -1,7 +1,7 @@
 {
   "name": "taste-maker",
   "version": "1.0.0",
-  "description": "A personal taste library — capture, connect, and refine a palette of quotes, references, music, and art",
+  "description": "A personal taste library — capture, connect, and refine a palette of quotes, references, music, art, and clothing",
   "private": true,
   "scripts": {
     "dev": "nuxt dev",

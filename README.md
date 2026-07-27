@@ -1,7 +1,8 @@
 # taste-maker
 
 A single-user, writable **taste library**: capture the quotes, pop-culture
-references, music, and visual art that strike you; browse and search them; see
+references, music, visual art, and clothing that strike you; browse and search
+them; see
 embedding-based "related" neighbours across all kinds; draw explicit
 connections; and run an A-vs-B **refine ritual** that promotes items from
 `captured` to `canon` — the refined **palette**, the app's face.
@@ -53,13 +54,14 @@ by the CI Cloudflare token.)
 
 ### Data model (owned `taste-maker` D1)
 
-Two tables — one `taste_item` shape for all four kinds (kind-specific rendering
+Two tables — one `taste_item` shape for all five kinds (kind-specific rendering
 is a UI concern), one `connection` edge table. Full DDL in
-`migrations/0001_init.sql`.
+`migrations/0001_init.sql`; the `kind` CHECK is widened in
+`migrations/0003_clothing_kind.sql`.
 
 - `taste_item`: `id, kind, title, body, source_url, creator, note, image_url,
   status, wins, losses, promoted_via, embedding, created_at, updated_at`.
-  - `kind ∈ {quote, reference, music, art}`
+  - `kind ∈ {quote, reference, music, art, clothing}`
   - `status ∈ {captured, canon, archived}` (default `captured`)
   - `promoted_via ∈ {refine, manual}`, NULL until canon
   - `embedding` is JSON text (or NULL); **never returned to the client** — routes

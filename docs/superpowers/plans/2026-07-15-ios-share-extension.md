@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Note (2026-07-27):** Written before the fifth kind, `clothing`, shipped. When executing, append `clothing` to every hardcoded kind list in this plan and give it the same image-led treatment as `art` (Description body label, visible image field) plus a "Brand" creator label — mirror `pages/capture.vue` and the `KINDS` const in `types/taste.ts`.
+
 **Goal:** Ship a native iOS Share Extension that captures a quote/reference/music/art item into taste-maker from any app's Share Sheet, via a new `TASTE_IOS_KEY`-authed backend route plus a new R2-backed photo-upload path for raw-photo shares, without the extension ever needing a browser session.
 
 **Architecture:** Two new backend routes (`POST /api/ingest/capture-image`, `GET /api/images/[key]`) backed by a new R2 bucket, alongside the existing `POST /api/ingest/capture` route (reused as-is). A new Xcode project (`ios/`) with three targets: `TasteCapture` (host app — key entry only), `TasteCaptureShare` (the Share Extension — the actual capture UI), and `TasteCaptureKit` (a shared Swift package with the networking client and Keychain helper, imported by both).
