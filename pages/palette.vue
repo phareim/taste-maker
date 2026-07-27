@@ -64,13 +64,14 @@
 <script setup lang="ts">
 import type { Connection, Kind, TasteItem } from '~/types/taste'
 
-// Section order per the plan: Quotes / References / Music / Art.
-const KIND_ORDER: Kind[] = ['quote', 'reference', 'music', 'art']
+// Section order per the plan: Quotes / References / Music / Art / Clothing.
+const KIND_ORDER: Kind[] = ['quote', 'reference', 'music', 'art', 'clothing']
 const KIND_LABELS: Record<Kind, string> = {
   quote: 'Quotes',
   reference: 'References',
   music: 'Music',
   art: 'Art',
+  clothing: 'Clothing',
 }
 
 const { list, connections: fetchConnections } = useItems()
@@ -124,6 +125,7 @@ function groupContainerClass(kind: Kind): string {
       // Pull-quotes, stacked, generous breathing room between them.
       return 'mt-8 flex flex-col gap-14'
     case 'art':
+    case 'clothing':
       // An image grid — the one place the palette reads as a wall, not a list.
       return 'mt-8 grid grid-cols-2 sm:grid-cols-3 gap-6'
     case 'music':
