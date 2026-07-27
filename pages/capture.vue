@@ -39,9 +39,9 @@
       </div>
 
       <!-- Image URL is always available (hotlinked, no uploads), but only
-           promoted to a prominent position when the kind is art — for the
-           other three kinds it still lives in the form, just further down. -->
-      <div v-if="kind === 'art' || kind === 'clothing'">
+           promoted to a prominent position for the image-led kinds — for the
+           others it still lives in the form, just further down. -->
+      <div v-if="isImageKind">
         <MonoLabel>Image URL</MonoLabel>
         <input v-model="imageUrl" type="url" class="tufte-input mt-1" placeholder="https://…" />
       </div>
@@ -56,7 +56,7 @@
         <input v-model="creator" type="text" class="tufte-input mt-1" placeholder="Author / artist / attribution" />
       </div>
 
-      <div v-if="kind !== 'art' && kind !== 'clothing'">
+      <div v-if="!isImageKind">
         <MonoLabel>Image URL</MonoLabel>
         <input v-model="imageUrl" type="url" class="tufte-input mt-1" placeholder="Optional — https://…" />
       </div>
@@ -98,12 +98,14 @@ const imageUrl = ref('')
 const submitting = ref(false)
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 
-const bodyLabel = computed(() => (kind.value === 'quote' ? 'Quote' : (kind.value === 'art' || kind.value === 'clothing') ? 'Description' : kind.value === 'music' ? 'Track' : 'Body'))
+// Kinds where the image is the primary content, so the form leads with it.
+const isImageKind = computed(() => kind.value === 'art' || kind.value === 'clothing')
+const bodyLabel = computed(() => (kind.value === 'quote' ? 'Quote' : isImageKind.value ? 'Description' : kind.value === 'music' ? 'Track' : 'Body'))
 const creatorLabel = computed(() => (kind.value === 'clothing' ? 'Brand' : 'Creator'))
 const bodyPlaceholder = computed(() => {
   switch (kind.value) {
     case 'quote': return 'The words themselves — required'
-    case 'art': return 'What it is, in a sentence — required'
+    case 'art':
     case 'clothing': return 'What it is, in a sentence — required'
     case 'music': return 'Track / album — required'
     default: return 'Short description — required'
