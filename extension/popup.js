@@ -5,6 +5,7 @@ const state = { kind: 'quote' }
 const els = {
   kindBtns: Array.from(document.querySelectorAll('.kind-btn')),
   bodyLabel: document.getElementById('body-label'),
+  creatorLabel: document.getElementById('creator-label'),
   imageField: document.getElementById('image-field'),
   title: document.getElementById('title'),
   body: document.getElementById('body'),
@@ -20,9 +21,11 @@ const els = {
 function setKind(kind) {
   state.kind = kind
   els.kindBtns.forEach((btn) => btn.classList.toggle('active', btn.dataset.kind === kind))
+  const imageKind = kind === 'art' || kind === 'clothing'
   els.bodyLabel.textContent =
-    kind === 'quote' ? 'Quote' : kind === 'art' ? 'Description' : kind === 'music' ? 'Track' : 'Body'
-  els.imageField.classList.toggle('hidden', kind !== 'art')
+    kind === 'quote' ? 'Quote' : imageKind ? 'Description' : kind === 'music' ? 'Track' : 'Body'
+  els.creatorLabel.textContent = kind === 'clothing' ? 'Brand' : 'Creator'
+  els.imageField.classList.toggle('hidden', !imageKind)
 }
 
 els.kindBtns.forEach((btn) => btn.addEventListener('click', () => setKind(btn.dataset.kind)))
