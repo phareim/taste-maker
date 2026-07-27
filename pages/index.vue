@@ -76,6 +76,7 @@ const KIND_FILTERS: Array<{ key: KindFilter; label: string }> = [
   { key: 'reference', label: 'Reference' },
   { key: 'music', label: 'Music' },
   { key: 'art', label: 'Art' },
+  { key: 'clothing', label: 'Clothing' },
 ]
 
 const STATUS_FILTERS: Array<{ key: StatusFilter; label: string }> = [
