@@ -134,6 +134,7 @@ const KIND_PIN_OPTIONS: Array<{ value: Kind | null; label: string }> = [
   { value: 'reference', label: 'Reference' },
   { value: 'music', label: 'Music' },
   { value: 'art', label: 'Art' },
+  { value: 'clothing', label: 'Clothing' },
 ]
 
 const { refinePair, refinePick } = useItems()
