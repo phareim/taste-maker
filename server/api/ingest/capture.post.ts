@@ -1,9 +1,7 @@
 import { ITEM_COLUMNS } from '~/server/utils/tasteDb'
 import { embedText } from '~/server/utils/embedding'
 import { setCaptureCorsHeaders } from '~/server/utils/cors'
-import type { Kind } from '~/types/taste'
-
-const VALID_KINDS: Kind[] = ['quote', 'reference', 'music', 'art', 'clothing']
+import { KINDS } from '~/types/taste'
 
 /**
  * Chrome extension capture: the extension's popup posts here directly from
@@ -21,8 +19,8 @@ export default defineEventHandler(async (event) => {
 
   const kind = body?.kind
   const text = typeof body?.body === 'string' ? body.body.trim() : ''
-  if (!VALID_KINDS.includes(kind) || !text) {
-    throw createError({ statusCode: 400, statusMessage: 'kind (quote|reference|music|art|clothing) and non-empty body are required' })
+  if (!KINDS.includes(kind) || !text) {
+    throw createError({ statusCode: 400, statusMessage: `kind (${KINDS.join('|')}) and non-empty body are required` })
   }
 
   const title = typeof body?.title === 'string' && body.title.trim() ? body.title.trim() : null

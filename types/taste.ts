@@ -2,7 +2,11 @@
 // Note: TasteItem deliberately has NO `embedding` field — that column never
 // leaves the server (see server/utils/tasteDb.ts ITEM_COLUMNS).
 
-export type Kind = 'quote' | 'reference' | 'music' | 'art' | 'clothing'
+// The closed set of kinds — mirrored by the CHECK constraint in the latest
+// taste_item migration; widening it means a new migration.
+export const KINDS = ['quote', 'reference', 'music', 'art', 'clothing'] as const
+
+export type Kind = (typeof KINDS)[number]
 
 export type Status = 'captured' | 'canon' | 'archived'
 
