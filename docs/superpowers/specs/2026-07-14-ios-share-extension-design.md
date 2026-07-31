@@ -1,5 +1,12 @@
 # iOS Share Extension for taste-maker capture
 
+> **Status (2026-07-31): shipped.** The prefill rules in "Prefill logic" below
+> were superseded — kind now routes from the shared URL's host (Spotify → music,
+> retailers → clothing) via `server/utils/enrich/`, a text selection always wins
+> and becomes a `quote`, and an unrecognized source leaves no kind selected
+> instead of defaulting to `reference`. `creator` is now inferred best-effort.
+> See README's "iOS Share Extension" and "Capture enrichment" sections.
+
 > **Note (2026-07-27):** Written before the fifth kind, `clothing`, shipped — treat every four-kind list below as five kinds, with `clothing` handled like `art` (image-led) plus a "Brand" creator label.
 
 Design spec. Companion to `docs/superpowers/specs/2026-07-14-chrome-extension-design.md`

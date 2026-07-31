@@ -1,5 +1,24 @@
 # iOS Share Extension Implementation Plan
 
+> **Status (2026-07-31): SHIPPED, with changes — this plan is history, not
+> instructions.** The unchecked boxes below were never ticked one by one; the
+> work landed in `f7afee6`, `4fab13f` and `653b3fd`. Read `ios/` and
+> `server/utils/enrich/` for what actually exists, and README's "iOS Share
+> Extension" and "Capture enrichment" sections for the current shape.
+>
+> What changed versus this plan:
+> - **Kind routing and creator inference were added** (`POST /api/ingest/enrich`
+>   over `server/utils/enrich/`, plus `LocalRouter` for the instant offline
+>   guess). This plan predates both.
+> - **An unrecognized source now leaves no kind selected and Save disabled**,
+>   rather than defaulting to `reference` as Task 8 specified.
+> - The `capture-image` route accepts png/heic/webp as well as jpeg.
+> - The `.xcodeproj` and generated plists are untracked; run `xcodegen generate`
+>   after cloning.
+>
+> Still outstanding: the signed on-device install and the Share Sheet
+> verification matrix (Task 10), which need a device and a Team ID.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **Note (2026-07-27):** Written before the fifth kind, `clothing`, shipped. When executing, append `clothing` to every hardcoded kind list in this plan and give it the same image-led treatment as `art` (Description body label, visible image field) plus a "Brand" creator label — mirror `pages/capture.vue` and the `KINDS` const in `types/taste.ts`.
