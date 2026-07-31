@@ -21,10 +21,44 @@ final class EnrichMergeTests: XCTestCase {
             touched: []
         )
         XCTAssertEqual(merged.kind, "music")
-        XCTAssertEqual(merged.title, "Dreams")
         XCTAssertEqual(merged.creator, "Fleetwood Mac")
         XCTAssertEqual(merged.creatorSource, "og:description")
         XCTAssertEqual(merged.kindReason, "matched x")
+    }
+
+    // The form labels the body "Track" for music and "Description" for
+    // art/clothing — that field is the item's NAME for those kinds, so the
+    // page title belongs there. Otherwise the user is asked to type a track
+    // name that is already on screen in the Title field above.
+    func testNameGoesToBodyForMusicArtAndClothing() {
+        for kind in ["music", "art", "clothing"] {
+            let merged = EnrichMerge.merge(CaptureFields(), result: result(kind: kind, title: "Outro"), touched: [])
+            XCTAssertEqual(merged.body, "Outro", kind)
+            XCTAssertEqual(merged.title, "", "\(kind) should not duplicate the name into title")
+        }
+    }
+
+    func testNameGoesToTitleForQuoteAndReference() {
+        for kind in ["quote", "reference"] {
+            let merged = EnrichMerge.merge(CaptureFields(), result: result(kind: kind, title: "A headline"), touched: [])
+            XCTAssertEqual(merged.title, "A headline", kind)
+            XCTAssertEqual(merged.body, "", kind)
+        }
+    }
+
+    // A quote's body is the selection the user made; enrichment must not
+    // overwrite it with the page title.
+    func testSelectionBodySurvives() {
+        let fields = CaptureFields(kind: "quote", body: "the selected sentence")
+        let merged = EnrichMerge.merge(fields, result: result(kind: "quote", title: "Page title"), touched: [])
+        XCTAssertEqual(merged.body, "the selected sentence")
+        XCTAssertEqual(merged.title, "Page title")
+    }
+
+    func testTypedTrackNameIsNotOverwritten() {
+        let fields = CaptureFields(kind: "music", body: "my own words")
+        let merged = EnrichMerge.merge(fields, result: result(kind: "music", title: "Outro"), touched: [.body])
+        XCTAssertEqual(merged.body, "my own words")
     }
 
     // The race the whole policy exists for: the user typed before the response
@@ -75,21 +109,15 @@ final class EnrichMergeTests: XCTestCase {
         XCTAssertNil(merged.kind, "a kind outside KINDS would fail the server's own CHECK constraint")
     }
 
-    func testImageURLOnlyAppliesToImageKinds() {
-        let music = EnrichMerge.merge(
-            CaptureFields(), result: result(kind: "music", imageURL: "https://img.test/a.jpg"), touched: []
-        )
-        XCTAssertEqual(music.imageURL, "", "music has no image field on the form")
-
-        let art = EnrichMerge.merge(
-            CaptureFields(), result: result(kind: "art", imageURL: "https://img.test/a.jpg"), touched: []
-        )
-        XCTAssertEqual(art.imageURL, "https://img.test/a.jpg")
-
-        let clothing = EnrichMerge.merge(
-            CaptureFields(), result: result(kind: "clothing", imageURL: "https://img.test/a.jpg"), touched: []
-        )
-        XCTAssertEqual(clothing.imageURL, "https://img.test/a.jpg")
+    // Album art off a Spotify link is worth keeping even though the music form
+    // hides the image field — the library renders it.
+    func testImageURLIsKeptForEveryKind() {
+        for kind in kinds {
+            let merged = EnrichMerge.merge(
+                CaptureFields(), result: result(kind: kind, imageURL: "https://img.test/a.jpg"), touched: []
+            )
+            XCTAssertEqual(merged.imageURL, "https://img.test/a.jpg", kind)
+        }
     }
 
     func testBlankServerValuesAreIgnored() {

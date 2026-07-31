@@ -74,15 +74,15 @@
         ]"
       >
         <img
-          v-if="oembed?.thumbnail_url"
-          :src="oembed.thumbnail_url"
-          :alt="oembed.title || item.title || item.body"
+          v-if="musicThumb"
+          :src="musicThumb"
+          :alt="oembed?.title || item.title || item.body"
           class="w-full h-full object-cover"
           loading="lazy"
         />
         <span v-else class="text-faint" style="font-size: 1.75rem;" aria-hidden="true">&#9835;</span>
         <span
-          v-if="oembed?.thumbnail_url"
+          v-if="musicThumb"
           class="absolute inset-0 flex items-center justify-center bg-black/10 text-white"
           aria-hidden="true"
         ><span style="font-size: 1rem;">&#9658;</span></span>
@@ -192,6 +192,11 @@ interface OEmbedData {
   author_name?: string
 }
 const oembed = ref<OEmbedData | null>(null)
+
+// oEmbed is a live lookup and can fail, rate-limit, or simply not cover the
+// host. Captures from the iOS Share Extension already store the og:image, so
+// fall back to it rather than dropping to the bare music glyph.
+const musicThumb = computed(() => oembed.value?.thumbnail_url || props.item.image_url || null)
 
 // Public, no-auth oEmbed endpoints for a thumbnail lookup only — this is
 // deliberately NOT URL auto-extraction (that's out of scope for v1).

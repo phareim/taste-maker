@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		374B3BBDB0BC7E9FD699194A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E45D63D46C08F735551115 /* SettingsView.swift */; };
 		37D24C281B8F3A4A88381F74 /* CaptureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CFF16FFC1E5E794E4E68BC /* CaptureViewModel.swift */; };
+		40A7BF62D77616A7A934FF46 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C86469FAD72169A9662407CB /* Assets.xcassets */; };
 		4E6673BEFC97BEA54CB878A6 /* TasteCaptureKit in Frameworks */ = {isa = PBXBuildFile; productRef = 836EAA0A6D058EC36C9208E5 /* TasteCaptureKit */; };
 		C6DA19B2922750B1E73D8D78 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064A2C68DCE702B4D6AE112 /* CaptureView.swift */; };
 		CDCDEAFD95604B8637499D71 /* TasteCaptureShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F4B3ECF163D8FB1B60033405 /* TasteCaptureShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -52,6 +53,7 @@
 		87E45D63D46C08F735551115 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		8B047581CF79AA97B10AF1D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C2CFF16FFC1E5E794E4E68BC /* CaptureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureViewModel.swift; sourceTree = "<group>"; };
+		C86469FAD72169A9662407CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CFB2A13C246D5ED7AB4AF884 /* TasteCaptureShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TasteCaptureShare.entitlements; sourceTree = "<group>"; };
 		D064A2C68DCE702B4D6AE112 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
 		ED779E83AE2B3377250F916F /* SharePreprocessor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = SharePreprocessor.js; sourceTree = "<group>"; };
@@ -121,6 +123,7 @@
 		E4F1B0B1901F30D89B89982F /* TasteCapture */ = {
 			isa = PBXGroup;
 			children = (
+				C86469FAD72169A9662407CB /* Assets.xcassets */,
 				713DE8AE5DF502D73F75C3F0 /* Info.plist */,
 				87E45D63D46C08F735551115 /* SettingsView.swift */,
 				7FE0CBF99248F1EC9AA50346 /* TasteCapture.entitlements */,
@@ -157,6 +160,7 @@
 			buildConfigurationList = 06552545A0B3C0D47801E559 /* Build configuration list for PBXNativeTarget "TasteCapture" */;
 			buildPhases = (
 				96DF4366D30DAAB3680926E5 /* Sources */,
+				C55E89DA863AB146CA5AD372 /* Resources */,
 				4D8D1952E5DEF0374ED4AB13 /* Frameworks */,
 				7305C0B920EAF0BA98580F80 /* Embed Foundation Extensions */,
 			);
@@ -221,6 +225,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				D226B4465F58508BB4E1F1EF /* SharePreprocessor.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C55E89DA863AB146CA5AD372 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40A7BF62D77616A7A934FF46 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
