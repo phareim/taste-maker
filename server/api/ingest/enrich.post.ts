@@ -12,8 +12,10 @@
  * Living server-side is the point: the routing table and the inference ladder
  * can be tuned with a deploy instead of an Xcode rebuild and reinstall.
  *
- * No CORS: native-only, called via URLSession, so no preflight is ever issued
- * (contrast capture.post.ts, which a browser extension calls).
+ * Two callers, two gates: the iOS Share Extension sends its Bearer key; the
+ * web capture form calls same-origin with the Reader session cookie. No CORS
+ * either way — native URLSession issues no preflight, and the web form is
+ * same-origin (contrast capture.post.ts, which a browser extension calls).
  */
 import { classifyKind } from '~/server/utils/enrich/classify'
 import { inferCreator, oembedCreator } from '~/server/utils/enrich/creator'
@@ -120,7 +122,13 @@ const nullResult = (sourceUrl: string | null) => ({
 })
 
 export default defineEventHandler(async (event) => {
-  requireIngestKey(event, 'TASTE_IOS_KEY')
+  // A Bearer header means the iOS extension; its absence means the web form,
+  // which must instead hold an allowed Reader session.
+  if (event.node.req.headers.authorization) {
+    requireIngestKey(event, 'TASTE_IOS_KEY')
+  } else {
+    await requireAllowedUser(event)
+  }
   const body = await readBody(event)
 
   const sharedText = typeof body?.shared_text === 'string' && body.shared_text.trim() ? body.shared_text.trim() : null
