@@ -5,7 +5,7 @@ import TasteCaptureKit
 
 @MainActor
 final class CaptureViewModel: ObservableObject {
-    enum Field: Hashable { case kind, title, body, sourceURL, imageURL, creator, note }
+    typealias Field = CaptureField
 
     /// Optional on purpose: an unrecognized source leaves this nil and Save
     /// stays disabled until the user picks, rather than silently defaulting to
@@ -173,29 +173,26 @@ final class CaptureViewModel: ObservableObject {
         apply(result)
     }
 
-    /// Writes only into fields that are still empty AND untouched. The user may
-    /// well have started typing before the response landed; their input always
-    /// wins.
+    /// The merge policy itself lives in TasteCaptureKit's `EnrichMerge`, where
+    /// it is a pure function and unit-tested — it is the one piece here with a
+    /// real race in it (the response can land after the user starts typing).
     func apply(_ result: EnrichResult) {
-        if kind == nil || (result.isHighConfidence && !touched.contains(.kind)) {
-            if let newKind = result.kind, kinds.contains(newKind) {
-                kind = newKind
-                kindReason = result.kindReason
-            }
-        }
-        if let value = result.title, !value.isEmpty, title.isEmpty, !touched.contains(.title) {
-            title = value
-        }
-        if let value = result.creator, !value.isEmpty, creator.isEmpty, !touched.contains(.creator) {
-            creator = value
-            creatorSource = result.creatorSource
-        }
-        if let value = result.imageURL, !value.isEmpty, imageURL.isEmpty, !touched.contains(.imageURL), isImageKind {
-            imageURL = value
-        }
-        if let value = result.sourceURL, !value.isEmpty, sourceURL.isEmpty, !touched.contains(.sourceURL) {
-            sourceURL = value
-        }
+        let merged = EnrichMerge.merge(currentFields, result: result, touched: touched)
+        kind = merged.kind
+        title = merged.title
+        sourceURL = merged.sourceURL
+        imageURL = merged.imageURL
+        creator = merged.creator
+        kindReason = merged.kindReason
+        creatorSource = merged.creatorSource
+    }
+
+    private var currentFields: CaptureFields {
+        CaptureFields(
+            kind: kind, title: title, body: body, sourceURL: sourceURL,
+            imageURL: imageURL, creator: creator, note: note,
+            kindReason: kindReason, creatorSource: creatorSource
+        )
     }
 
     // MARK: - Submit

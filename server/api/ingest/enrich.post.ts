@@ -60,7 +60,20 @@ function isFetchableUrl(raw: string): boolean {
   return true
 }
 
+/**
+ * Never throws. A failed fetch must cost us only the page's metadata — the
+ * signals the caller already handed over (the host, the Share Sheet's own
+ * text) still have to reach the ladder.
+ */
 async function fetchMetadata(url: string): Promise<PageMetadata> {
+  try {
+    return await fetchMetadataOrThrow(url)
+  } catch {
+    return emptyMetadata()
+  }
+}
+
+async function fetchMetadataOrThrow(url: string): Promise<PageMetadata> {
   const res = await fetch(url, {
     redirect: 'follow',
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),

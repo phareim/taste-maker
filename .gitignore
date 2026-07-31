@@ -19,3 +19,6 @@ ios/TasteCaptureShare/TasteCaptureShare.entitlements
 ios/**/.build
 ios/**/*.xcworkspace/xcuserdata
 DerivedData
+
+# wrangler local secrets
+.dev.vars
