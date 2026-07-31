@@ -36,12 +36,22 @@ fi
 if [ $# -ge 1 ]; then
   DEVICE="$1"
 else
-  # Name and model columns both contain spaces, so match the UUID itself
-  # rather than counting fields.
-  DEVICE=$(xcrun devicectl list devices 2>/dev/null \
-    | grep -i iphone | grep -i available \
-    | grep -oE '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}' \
-    | head -1)
+  # Restrict to iPhone rows before matching anything: a paired Apple Watch
+  # reports state "available (paired)", so a bare state match picks the watch.
+  # A plugged-in phone reports "connected"; one paired over the network reports
+  # "available". Accept either, preferring connected.
+  #
+  # The Name and Model columns both contain spaces, so match the UUID itself
+  # rather than counting fields. `|| true` because a miss here is a normal
+  # outcome to be reported below, and grep's exit 1 would otherwise trip
+  # `set -o pipefail` and kill the script with no message at all.
+  IPHONES=$(xcrun devicectl list devices 2>/dev/null | grep -i iphone || true)
+  DEVICE=$(printf '%s\n' "$IPHONES" | grep -i 'connected' \
+    | grep -oE '[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}' | head -1 || true)
+  if [ -z "$DEVICE" ]; then
+    DEVICE=$(printf '%s\n' "$IPHONES" | grep -i 'available' \
+      | grep -oE '[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}' | head -1 || true)
+  fi
 fi
 
 if [ -z "${DEVICE:-}" ]; then

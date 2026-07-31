@@ -45,6 +45,9 @@ targets:
         # info.path, so every such key lives in `info.properties` below
         # instead — verified by inspecting the built archive.
         CODE_SIGN_ENTITLEMENTS: TasteCapture/TasteCapture.entitlements
+        # iPhone only. A personal capture app that is portrait-only, and
+        # declaring iPad would warn that portrait-only needs full screen.
+        TARGETED_DEVICE_FAMILY: "1"
     entitlements:
       path: TasteCapture/TasteCapture.entitlements
       properties:
