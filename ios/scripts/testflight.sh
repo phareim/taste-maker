@@ -6,7 +6,8 @@
 # Cloud remains the primary path (see
 # docs/superpowers/specs/2026-07-31-xcode-cloud-testflight-design.md).
 #
-#   ./scripts/testflight.sh
+#   ./scripts/testflight.sh                  # build number = git commit count
+#   BUILD_NUMBER=123 ./scripts/testflight.sh # or force one
 #
 # Requires, one time each:
 #
@@ -53,6 +54,15 @@ if command -v xcodegen >/dev/null 2>&1; then
   xcodegen generate --quiet
 fi
 
+# App Store Connect permanently rejects a build number it has already seen, so
+# every upload needs a fresh one. The commit count is monotonic, meaningful
+# (it points at the exact commit shipped) and needs no network or state file.
+#
+# Re-uploading the same commit is the one case it can't cover — commit again,
+# or pass BUILD_NUMBER=n explicitly.
+BUILD_NUMBER="${BUILD_NUMBER:-$(git rev-list --count HEAD)}"
+echo "==> Build number $BUILD_NUMBER"
+
 rm -rf "$ARCHIVE" "$EXPORT_DIR"
 
 echo "==> Archiving (Release)"
@@ -63,7 +73,22 @@ xcodebuild \
   -destination 'generic/platform=iOS' \
   -archivePath "$ARCHIVE" \
   -allowProvisioningUpdates \
+  CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
   archive
+
+# Guard against the version wiring silently regressing: if a plist ever stops
+# referencing $(CURRENT_PROJECT_VERSION), the override becomes a no-op and the
+# upload fails much later with a confusing duplicate-build error.
+APP_PLIST="$ARCHIVE/Products/Applications/TasteCapture.app/Info.plist"
+EXT_PLIST="$ARCHIVE/Products/Applications/TasteCapture.app/PlugIns/TasteCaptureShare.appex/Info.plist"
+for plist in "$APP_PLIST" "$EXT_PLIST"; do
+  got=$(plutil -extract CFBundleVersion raw -o - "$plist")
+  if [ "$got" != "$BUILD_NUMBER" ]; then
+    echo "Build number didn't take in $(basename "$(dirname "$plist")"): got $got, wanted $BUILD_NUMBER" >&2
+    exit 1
+  fi
+done
+echo "==> Verified build number in app and extension"
 
 echo "==> Exporting for App Store Connect"
 xcodebuild \

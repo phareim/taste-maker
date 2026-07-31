@@ -16,6 +16,13 @@ settings:
     # Same team as sfl, do, write and every15.
     DEVELOPMENT_TEAM: 7L482847WS
     CODE_SIGN_STYLE: Automatic
+    # Both targets' Info.plists reference these rather than hardcoding a
+    # version, so `xcodebuild CURRENT_PROJECT_VERSION=n` can override the build
+    # number at archive time. testflight.sh does exactly that — App Store
+    # Connect permanently rejects a build number it has already seen, and the
+    # app and its extension must carry the SAME one or the upload is rejected.
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
 
 packages:
   TasteCaptureKit:
@@ -62,6 +69,8 @@ targets:
       path: TasteCapture/Info.plist
       properties:
         CFBundleDisplayName: taste-maker
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         # Without this, App Store Connect gates EVERY TestFlight build behind a
         # manual export-compliance prompt. HTTPS-only traffic is exempt.
         ITSAppUsesNonExemptEncryption: false
@@ -104,6 +113,9 @@ targets:
       path: TasteCaptureShare/Info.plist
       properties:
         CFBundleDisplayName: Capture to taste
+        # Must match the host app exactly, or the upload is rejected.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
