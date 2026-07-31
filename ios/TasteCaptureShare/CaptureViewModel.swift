@@ -23,6 +23,11 @@ final class CaptureViewModel: ObservableObject {
     @Published var kindReason: String?
     @Published var creatorSource: String?
 
+    /// True when the capture itself settled the kind (a high-confidence match,
+    /// local or server-side). The pills disappear — nothing to choose when the
+    /// source already answered. Mirrors the web capture form.
+    @Published var kindLocked = false
+
     @Published var isEnriching = false
     @Published var isSubmitting = false
     @Published var statusMessage: String?
@@ -30,7 +35,9 @@ final class CaptureViewModel: ObservableObject {
     @Published var needsKey = false
 
     private(set) var touched: Set<Field> = []
-    private var pendingImage: UIImage?
+    /// Published so the view can show the shared photo in the preview, not
+    /// just hold it for upload.
+    @Published private(set) var pendingImage: UIImage?
 
     private weak var extensionContext: NSExtensionContext?
     private let keychain = KeychainStore()
@@ -65,10 +72,32 @@ final class CaptureViewModel: ObservableObject {
         kind != nil && !effectiveBody.isEmpty && !isSubmitting
     }
 
+    // MARK: - Preview
+
+    /// What the preview names the item: for music/art/clothing the body IS
+    /// the name (EnrichMerge routes the page title there), title otherwise.
+    var previewName: String? {
+        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedBody.isEmpty { return trimmedBody }
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedTitle.isEmpty ? nil : trimmedTitle
+    }
+
+    var previewImageURL: URL? {
+        let trimmed = imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("http") else { return nil }
+        return URL(string: trimmed)
+    }
+
+    var hasPreviewImage: Bool { pendingImage != nil || previewImageURL != nil }
+
     func markTouched(_ field: Field) {
         touched.insert(field)
         if field == .creator { creatorSource = nil }
-        if field == .kind { kindReason = nil }
+        if field == .kind {
+            kindReason = nil
+            kindLocked = false
+        }
     }
 
     // MARK: - Prefill
@@ -151,6 +180,7 @@ final class CaptureViewModel: ObservableObject {
         if guess.autoSelects {
             kind = guess.kind
             kindReason = guess.reason
+            kindLocked = true
         }
         // Sharing an image that came with a URL (long-press in Safari) needs no
         // upload — the URL is already the image.
@@ -199,11 +229,18 @@ final class CaptureViewModel: ObservableObject {
         let merged = EnrichMerge.merge(currentFields, result: result, touched: touched)
         kind = merged.kind
         title = merged.title
+        body = merged.body
         sourceURL = merged.sourceURL
         imageURL = merged.imageURL
         creator = merged.creator
         kindReason = merged.kindReason
         creatorSource = merged.creatorSource
+        // Lock only ever tightens here: a high-confidence server answer locks,
+        // but a failed or unsure enrich never unlocks what the local router
+        // already settled.
+        if result.isHighConfidence, merged.kind != nil, !touched.contains(.kind) {
+            kindLocked = true
+        }
     }
 
     private var currentFields: CaptureFields {
