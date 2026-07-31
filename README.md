@@ -300,6 +300,10 @@ Four files, all pure functions except the route itself:
   4. per-host extractors (Spotify's `·`-delimited `og:description`, Apple
      Music's "X by Y", a Bandcamp artist subdomain, SoundCloud, GitHub, Medium,
      Substack, Instagram)
+  4b. for `clothing`, the retailer's own name — most single-brand shops ship no
+     `Product.brand` at all (verified on Sunspel), which left Brand empty on the
+     field a clothing capture most wants. Retailers that stock *other* labels are
+     excluded via `multiBrand` in `domains.ts`, since "Ssense" is nobody's brand.
   5. title patterns — `"X by Y"`, and a trailing `—`/`|`/`:` segment, **but
      only when that segment isn't the site's own name**, or every article would
      be attributed to its masthead
@@ -312,6 +316,23 @@ Four files, all pure functions except the route itself:
   80 chars, a URL, or identical to the title. A blank `creator` beats a
   confident wrong one, because a wrong one gets silently committed to the
   library.
+
+`cleanTitle` then trims what `og:title` duplicates — it is written for search
+results, so it carries the site's name and often the creator's too ("Rumours by
+Fleetwood Mac on Apple Music"). It only ever strips a suffix it can match
+against a *known* site name, host, or resolved creator, so real titles like
+"Blood on the Tracks" and "Dreams - 2004 Remaster" survive untouched.
+
+### Two things this only got right by testing against live pages
+
+- **Identify as a crawler, not a browser.** Spotify and Apple Music serve a JS
+  shell with no `og:` tags to a Chrome UA, and only emit metadata to a
+  crawler-shaped agent. The honest UA is also the one that works.
+- **`og:site_name` is not dependable.** Apple Music sends "Apple Music - Web
+  Player" to one client and *nothing* to Cloudflare's egress — so a fix that
+  passed its fixtures did nothing in production. `SITE_NAMES` in `domains.ts`
+  names those hosts ourselves. When enrichment behaves differently live than in
+  a fixture, suspect the page varies by client before suspecting the code.
 
 ## The refine ritual
 
