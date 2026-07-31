@@ -52,8 +52,17 @@ final class CaptureViewModel: ObservableObject {
         default: return "Body"
         }
     }
+    /// `/api/ingest/capture` requires a non-empty body, but a music or
+    /// clothing share is usually a bare link whose only prose is the title —
+    /// demanding the user type something would defeat the whole point. So the
+    /// title stands in when the body is empty.
+    var effectiveBody: String {
+        let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? title.trimmingCharacters(in: .whitespacesAndNewlines) : trimmed
+    }
+
     var canSubmit: Bool {
-        kind != nil && !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSubmitting
+        kind != nil && !effectiveBody.isEmpty && !isSubmitting
     }
 
     func markTouched(_ field: Field) {
@@ -109,8 +118,16 @@ final class CaptureViewModel: ObservableObject {
             }
         }
 
+        // Not every app provides a public.url attachment — Spotify shares a
+        // bare link as plain TEXT. Without this the URL sits in the body,
+        // sourceURL stays empty, nothing routes, and enrich never fires.
+        if foundURL == nil, let extracted = SharedText.firstURL(in: foundText) {
+            foundURL = extracted
+        }
+
         // The page's own URL is more trustworthy than a shared attachment URL.
         if let pageURL = page?.url, !pageURL.isEmpty { foundURL = pageURL }
+        if let url = foundURL { foundURL = SharedText.cleanURL(url) }
         let selection = (page?.selection ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 
         if let pageTitle = page?.title, !pageTitle.isEmpty { title = pageTitle }
@@ -119,10 +136,10 @@ final class CaptureViewModel: ObservableObject {
 
         if !selection.isEmpty {
             body = selection
-        } else if !foundText.isEmpty, foundText != foundURL {
-            // Some apps share "Track by Artist <url>" as text; keep it as the
-            // body but don't duplicate a bare URL into it.
-            body = foundText
+        } else if !foundText.isEmpty {
+            // Keep only the human part: "Dreams by Fleetwood Mac https://…"
+            // becomes a body, a bare link becomes nothing.
+            body = SharedText.withoutURLs(foundText)
         }
 
         // The instant guess, so the form is never blank while enrich is in flight.
@@ -159,7 +176,9 @@ final class CaptureViewModel: ObservableObject {
     // MARK: - Enrichment
 
     private func enrich(url: String?, sharedText: String?, page: SharedPageContext?, hasImage: Bool) async {
-        guard url != nil || page != nil else { return }
+        // Shared text alone is still worth sending — the server's last rung
+        // reads a creator out of "Dreams by Fleetwood Mac".
+        guard url != nil || page != nil || sharedText != nil else { return }
         guard let key = keychain.load() else { return }
 
         isEnriching = true
@@ -198,7 +217,7 @@ final class CaptureViewModel: ObservableObject {
     // MARK: - Submit
 
     func submit() async {
-        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedBody = effectiveBody
         guard let kind, !trimmedBody.isEmpty else { return }
 
         guard let key = keychain.load() else {
