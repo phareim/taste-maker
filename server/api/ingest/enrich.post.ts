@@ -18,11 +18,11 @@
 import { classifyKind } from '~/server/utils/enrich/classify'
 import { inferCreator, oembedCreator } from '~/server/utils/enrich/creator'
 import {
+  cleanTitle,
   emptyMetadata,
   metadataFromPage,
   metadataFromResponse,
   metaOf,
-  titleOf,
   type PageMetadata,
 } from '~/server/utils/enrich/metadata'
 
@@ -157,7 +157,9 @@ export default defineEventHandler(async (event) => {
       kind: kindGuess.kind,
       kind_confidence: kindGuess.confidence,
       kind_reason: kindGuess.reason,
-      title: titleOf(metadata),
+      // After creator, deliberately: cleanTitle strips a trailing byline once
+      // it knows the name we're already storing in its own field.
+      title: cleanTitle(metadata, sourceUrl, creator?.value ?? null),
       creator: creator?.value ?? null,
       creator_source: creator?.source ?? null,
       image_url: metaOf(metadata, 'og:image', 'twitter:image', 'og:image:secure_url'),

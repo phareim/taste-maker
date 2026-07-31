@@ -9,6 +9,7 @@
 
 import type { Kind } from '~/types/taste'
 import {
+  decodeEntities,
   flattenJsonLd,
   metaOf,
   namesFrom,
@@ -17,29 +18,12 @@ import {
   titleOf,
   type PageMetadata,
 } from './metadata'
-import { normalizeHost } from './domains'
+import { matchRule, normalizeHost } from './domains'
 
 export interface CreatorGuess {
   value: string
   /** Human-readable provenance, shown as a caption under the field. */
   source: string
-}
-
-const HTML_ENTITIES: Record<string, string> = {
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-  '&quot;': '"',
-  '&#39;': "'",
-  '&apos;': "'",
-  '&nbsp;': ' ',
-}
-
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (m) => HTML_ENTITIES[m] ?? m)
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
 }
 
 /**
@@ -256,6 +240,19 @@ export function inferCreator(
       }
     } catch {
       // Unparseable URL — skip this rung.
+    }
+  }
+
+  // 4b — a single-brand shop IS the brand. Most such product pages carry no
+  // `Product.brand` at all (verified on Sunspel), so without this the one field
+  // a clothing capture most wants stays empty. Deliberately below the per-host
+  // and structured rungs: a real brand assertion always wins, and multi-brand
+  // retailers are excluded by the table, since "Ssense" is nobody's label.
+  if (kind === 'clothing' && sourceUrl) {
+    const hit = matchRule(sourceUrl)
+    if (hit && !hit.rule.multiBrand) {
+      const brand = take(siteNameOf(m), 'the retailer’s own name')
+      if (brand) return brand
     }
   }
 

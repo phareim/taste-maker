@@ -12,19 +12,103 @@ export interface PageMetadata {
 
 export const emptyMetadata = (): PageMetadata => ({ title: null, meta: {}, jsonLd: [] })
 
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&apos;': "'",
+  '&nbsp;': ' ',
+}
+
+/**
+ * Every value here comes out of raw HTML attributes, so entities are routine —
+ * `og:title` for a shirt is literally `Men&#39;s Loopback Sweatshirt`. Decoding
+ * at the accessor rather than at each call site means no caller can forget.
+ */
+export function decodeEntities(s: string): string {
+  return s
+    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (m) => HTML_ENTITIES[m] ?? m)
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+}
+
 export const metaOf = (m: PageMetadata, ...keys: string[]): string | null => {
   for (const k of keys) {
     const v = m.meta[k.toLowerCase()]
-    if (v && v.trim()) return v.trim()
+    if (v && v.trim()) return decodeEntities(v).trim()
   }
   return null
 }
 
 /** og:title if present, else the <title> element. */
 export const titleOf = (m: PageMetadata): string | null =>
-  metaOf(m, 'og:title', 'twitter:title') || (m.title && m.title.trim() ? m.title.trim() : null)
+  metaOf(m, 'og:title', 'twitter:title') ||
+  (m.title && m.title.trim() ? decodeEntities(m.title).trim() : null)
 
 export const siteNameOf = (m: PageMetadata): string | null => metaOf(m, 'og:site_name', 'application-name')
+
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Removes `suffix` from the end of `t`, but never leaves it empty. */
+function stripSuffix(t: string, pattern: string): string {
+  const stripped = t.replace(new RegExp(pattern, 'i'), '').trim()
+  return stripped || t
+}
+
+/**
+ * `og:title` is written for search results, not for a library entry: it carries
+ * the site's name and often the creator's too ("Rumours by Fleetwood Mac on
+ * Apple Music", "Loopback Sweatshirt | Sunspel"). Both end up duplicated next to
+ * a field that already holds them, so strip what we're storing separately.
+ *
+ * Only ever removes a suffix it can match against a KNOWN value — the site name,
+ * the bare host, or the creator we resolved. It never guesses at a separator,
+ * which would eat real titles like "Blood on the Tracks".
+ */
+export function cleanTitle(
+  m: PageMetadata,
+  sourceUrl: string | null,
+  creator: string | null
+): string | null {
+  let t = titleOf(m)
+  if (!t) return null
+
+  const site = siteNameOf(m)
+  const bareHost = (() => {
+    try {
+      return sourceUrl ? new URL(sourceUrl).hostname.replace(/^www\./, '').replace(/\.[a-z.]+$/, '') : null
+    } catch {
+      return null
+    }
+  })()
+  const owners = [site, bareHost].filter((v): v is string => Boolean(v))
+
+  // "… on Apple Music" / "… on Spotify"
+  for (const owner of owners) {
+    t = stripSuffix(t, `\\s+on\\s+${escapeRe(owner)}\\.?$`)
+  }
+
+  // A trailing separator segment that is the site, the host, or the creator.
+  const drop = [...owners, creator].filter((v): v is string => Boolean(v)).map(norm)
+  for (let i = 0; i < 2; i++) {
+    const parts = t.split(/\s+[—–|·]\s+|\s+-\s+/)
+    if (parts.length < 2) break
+    const last = parts[parts.length - 1].trim()
+    if (!drop.includes(norm(last))) break
+    const rest = parts.slice(0, -1).join(' — ').trim()
+    if (!rest) break
+    t = rest
+  }
+
+  // "Rumours by Fleetwood Mac" once we already know the artist.
+  if (creator) t = stripSuffix(t, `\\s+by\\s+${escapeRe(creator)}\\.?$`)
+
+  return t || null
+}
 
 /**
  * JSON-LD is routinely malformed, deeply nested, and wrapped in `@graph`.
