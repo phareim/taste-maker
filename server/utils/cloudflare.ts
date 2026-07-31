@@ -18,19 +18,28 @@ type CloudflareEnv = {
 // extension uses its own TASTE_EXTENSION_KEY, and the iOS Share Extension
 // its own TASTE_IOS_KEY (each is a separate trust boundary — a key living
 // in browser extension storage or an iOS Keychain is more exposed than one
-// in a Worker's config, so each is independently rotatable). 503 when the
-// selected key is unset (feature off), 401 on mismatch.
+// in a Worker's config, so each is independently rotatable). 503 when none of
+// the accepted keys is set (feature off), 401 on mismatch.
+//
+// Accepts a LIST because one route can legitimately serve two clients with
+// distinct trust boundaries: /api/ingest/capture is the shared item-creation
+// endpoint for both the Chrome extension and the iOS Share Extension. Keeping
+// separate secrets that both open the same door preserves the point of having
+// two — either can be rotated without touching the other.
+type IngestKeyName = 'TASTE_INGEST_KEY' | 'TASTE_EXTENSION_KEY' | 'TASTE_IOS_KEY'
+
 export const requireIngestKey = (
   event: any,
-  envKey: 'TASTE_INGEST_KEY' | 'TASTE_EXTENSION_KEY' | 'TASTE_IOS_KEY' = 'TASTE_INGEST_KEY'
+  envKey: IngestKeyName | IngestKeyName[] = 'TASTE_INGEST_KEY'
 ) => {
   const env = event?.context?.cloudflare?.env as CloudflareEnv | undefined
-  const key = env?.[envKey]
-  if (!key) {
+  const names = Array.isArray(envKey) ? envKey : [envKey]
+  const configured = names.map((n) => env?.[n]).filter((v): v is string => Boolean(v))
+  if (!configured.length) {
     throw createError({ statusCode: 503, statusMessage: 'Ingest is not configured.' })
   }
   const header = event?.node?.req?.headers?.authorization ?? ''
-  if (header !== `Bearer ${key}`) {
+  if (!configured.some((key) => header === `Bearer ${key}`)) {
     throw createError({ statusCode: 401, statusMessage: 'Invalid ingest key.' })
   }
 }

@@ -103,12 +103,13 @@ encounter in Reader, refine in taste-maker.
   undo returns `{deleted: false, reason: 'touched'}`.
 - `POST /api/ingest/capture` — `{kind, title?, body, source_url?, creator?,
   note?, image_url?}`. Same validation as `POST /api/items`. Used by the
-  Chrome extension (`extension/`) to capture from any page without a
-  browser session. Auth is `Authorization: Bearer <TASTE_EXTENSION_KEY>` —
-  a separate secret from `TASTE_INGEST_KEY` (extension-held keys are a
-  different trust boundary than Worker-held ones). CORS-scoped to the
-  extension's own fixed origin (see `server/utils/cors.ts`); handles its own
-  `OPTIONS` preflight.
+  Chrome extension (`extension/`) **and** the iOS Share Extension (`ios/`) to
+  capture without a browser session. Auth is `Authorization: Bearer` with
+  **either `TASTE_EXTENSION_KEY` or `TASTE_IOS_KEY`** — two secrets, one door,
+  so either client can be rotated without touching the other. Both are separate
+  from `TASTE_INGEST_KEY` (client-held keys are a different trust boundary than
+  Worker-held ones). CORS-scoped to the Chrome extension's fixed origin (see
+  `server/utils/cors.ts`); handles its own `OPTIONS` preflight.
 - `POST /api/ingest/capture-image` — raw image bytes (`image/jpeg|png|heic|webp`),
   max 8MB or `413`. Stores the object in the `taste-maker-images` R2 bucket
   (binding `TASTE_IMAGES`) and returns `{url}` for the caller to pass back as a

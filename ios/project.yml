@@ -45,6 +45,9 @@ targets:
         # info.path, so every such key lives in `info.properties` below
         # instead — verified by inspecting the built archive.
         CODE_SIGN_ENTITLEMENTS: TasteCapture/TasteCapture.entitlements
+        # Assets.xcassets is picked up from the sources dir; this names the icon
+        # set inside it. Regenerate the art with `python3 ios/scripts/make-icon.py`.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # iPhone only. A personal capture app that is portrait-only, and
         # declaring iPad would warn that portrait-only needs full screen.
         TARGETED_DEVICE_FAMILY: "1"

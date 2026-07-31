@@ -13,7 +13,10 @@ import { KINDS } from '~/types/taste'
  */
 export default defineEventHandler(async (event) => {
   setCaptureCorsHeaders(event)
-  requireIngestKey(event, 'TASTE_EXTENSION_KEY')
+  // Both capture clients create items here: the Chrome extension with
+  // TASTE_EXTENSION_KEY, the iOS Share Extension with TASTE_IOS_KEY. Two
+  // secrets, one door — so either can be rotated independently.
+  requireIngestKey(event, ['TASTE_EXTENSION_KEY', 'TASTE_IOS_KEY'])
   const db = getTasteDb(event)
   const body = await readBody(event)
 
