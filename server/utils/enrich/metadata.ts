@@ -85,7 +85,11 @@ export function cleanTitle(
       return null
     }
   })()
-  const owners = [site, bareHost].filter((v): v is string => Boolean(v))
+  // Site names often carry a tagline — Apple Music sends "Apple Music - Web
+  // Player" while its titles end in plain "on Apple Music" — so the leading
+  // segment counts as an owner name too.
+  const siteHead = site?.split(/\s+[—–|·-]\s+/)[0].trim() || null
+  const owners = [site, siteHead, bareHost].filter((v): v is string => Boolean(v))
 
   // "… on Apple Music" / "… on Spotify"
   for (const owner of owners) {
