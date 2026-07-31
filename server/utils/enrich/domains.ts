@@ -82,6 +82,30 @@ export const DOMAIN_RULES: DomainRule[] = [
   { match: /^wikiart\.org$/, kind: 'art' },
 ]
 
+/**
+ * What a host calls itself, for hosts whose `og:site_name` can't be trusted.
+ *
+ * Apple Music titles always end "… on Apple Music", but it serves `og:site_name`
+ * inconsistently — "Apple Music - Web Player" to one client and nothing at all to
+ * Cloudflare's egress (verified 2026-07-31), which left the suffix stuck on the
+ * title. Naming the site ourselves makes the trim deterministic instead of
+ * dependent on which variant of a page we happen to be served.
+ */
+export const SITE_NAMES: Array<{ match: RegExp; name: string }> = [
+  { match: /^music\.apple\.com$/, name: 'Apple Music' },
+  { match: /^open\.spotify\.com$/, name: 'Spotify' },
+  { match: /^(m\.)?soundcloud\.com$/, name: 'SoundCloud' },
+  { match: /(^|\.)bandcamp\.com$/, name: 'Bandcamp' },
+  { match: /^(listen\.)?tidal\.com$/, name: 'TIDAL' },
+  { match: /^music\.youtube\.com$/, name: 'YouTube Music' },
+]
+
+export function siteNameForHost(url: string): string | null {
+  const host = normalizeHost(url)
+  if (!host) return null
+  return SITE_NAMES.find((s) => s.match.test(host))?.name ?? null
+}
+
 /** Lowercased hostname with `www.`, a trailing dot, and any port removed. */
 export function normalizeHost(url: string): string | null {
   try {

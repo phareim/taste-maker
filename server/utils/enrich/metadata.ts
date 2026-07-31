@@ -3,6 +3,8 @@
 // Extension's JS preprocessor handing over what Safari already had in the DOM
 // (in which case no outbound fetch happens at all).
 
+import { siteNameForHost } from './domains'
+
 /** All `<meta>` name/property values, lowercased keys. Plus the raw JSON-LD blobs. */
 export interface PageMetadata {
   title: string | null
@@ -89,7 +91,9 @@ export function cleanTitle(
   // Player" while its titles end in plain "on Apple Music" — so the leading
   // segment counts as an owner name too.
   const siteHead = site?.split(/\s+[—–|·-]\s+/)[0].trim() || null
-  const owners = [site, siteHead, bareHost].filter((v): v is string => Boolean(v))
+  const owners = [site, siteHead, sourceUrl ? siteNameForHost(sourceUrl) : null, bareHost].filter(
+    (v): v is string => Boolean(v)
+  )
 
   // "… on Apple Music" / "… on Spotify"
   for (const owner of owners) {
@@ -108,8 +112,11 @@ export function cleanTitle(
     t = rest
   }
 
-  // "Rumours by Fleetwood Mac" once we already know the artist.
-  if (creator) t = stripSuffix(t, `\\s+by\\s+${escapeRe(creator)}\\.?$`)
+  // "Rumours by Fleetwood Mac" once we already know the artist. Bandcamp writes
+  // "Funeral for Justice, by Mdou Moctar", so drop the separator it leaves behind.
+  if (creator) {
+    t = stripSuffix(t, `[,;:–—-]?\\s+by\\s+${escapeRe(creator)}\\.?$`)
+  }
 
   return t || null
 }
