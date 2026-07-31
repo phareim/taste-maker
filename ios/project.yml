@@ -13,9 +13,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    # Left blank deliberately: every build before the on-device install runs
-    # with CODE_SIGNING_ALLOWED=NO, so nothing here depends on a Team ID.
-    DEVELOPMENT_TEAM: ""
+    # Same team as sfl, do, write and every15.
+    DEVELOPMENT_TEAM: 7L482847WS
     CODE_SIGN_STYLE: Automatic
 
 packages:
@@ -32,11 +31,19 @@ targets:
       - package: TasteCaptureKit
       - target: TasteCaptureShare
         embed: true
+    # Emits TasteCapture.xcodeproj/xcshareddata/xcschemes/TasteCapture.xcscheme.
+    # Xcode Cloud can only build SHARED schemes, and the generated project is
+    # committed for exactly that reason — see docs/superpowers/specs/
+    # 2026-07-31-xcode-cloud-testflight-design.md.
+    scheme:
+      testTargets: []
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: no.phareim.tastecapture
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        # NOTE: INFOPLIST_KEY_* build settings are ignored unless
+        # GENERATE_INFOPLIST_FILE is YES. This target has an explicit
+        # info.path, so every such key lives in `info.properties` below
+        # instead — verified by inspecting the built archive.
         CODE_SIGN_ENTITLEMENTS: TasteCapture/TasteCapture.entitlements
     entitlements:
       path: TasteCapture/TasteCapture.entitlements
@@ -49,6 +56,14 @@ targets:
       path: TasteCapture/Info.plist
       properties:
         CFBundleDisplayName: taste-maker
+        # Without this, App Store Connect gates EVERY TestFlight build behind a
+        # manual export-compliance prompt. HTTPS-only traffic is exempt.
+        ITSAppUsesNonExemptEncryption: false
+        # A launch storyboard (even an empty generated one) is what stops iOS
+        # letterboxing the app at a smaller-than-native resolution.
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         # The extension can't show settings of its own, so it deep-links here.
         CFBundleURLTypes:
           - CFBundleURLName: no.phareim.tastecapture
@@ -66,6 +81,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: no.phareim.tastecapture.share
         CODE_SIGN_ENTITLEMENTS: TasteCaptureShare/TasteCaptureShare.entitlements
+        # Mandatory for an app extension in an archive — without it the .appex
+        # is archived as a top-level product and the TestFlight upload is
+        # rejected. xcodegen does not set this for you.
+        SKIP_INSTALL: YES
     entitlements:
       path: TasteCaptureShare/TasteCaptureShare.entitlements
       properties:

@@ -1,0 +1,502 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		374B3BBDB0BC7E9FD699194A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E45D63D46C08F735551115 /* SettingsView.swift */; };
+		37D24C281B8F3A4A88381F74 /* CaptureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CFF16FFC1E5E794E4E68BC /* CaptureViewModel.swift */; };
+		4E6673BEFC97BEA54CB878A6 /* TasteCaptureKit in Frameworks */ = {isa = PBXBuildFile; productRef = 836EAA0A6D058EC36C9208E5 /* TasteCaptureKit */; };
+		C6DA19B2922750B1E73D8D78 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064A2C68DCE702B4D6AE112 /* CaptureView.swift */; };
+		CDCDEAFD95604B8637499D71 /* TasteCaptureShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F4B3ECF163D8FB1B60033405 /* TasteCaptureShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D226B4465F58508BB4E1F1EF /* SharePreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = ED779E83AE2B3377250F916F /* SharePreprocessor.js */; };
+		E48EF6D4420667AC6970E4BB /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7686B8FCAF0ACF13D3092A3B /* ShareViewController.swift */; };
+		EC89BBCCAB54713DD0251A21 /* TasteCaptureKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9083E4B946722201BA3F79D2 /* TasteCaptureKit */; };
+		F6E58AA7DF2B13A140A5F468 /* TasteCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA639C06D7F04783D40B805 /* TasteCaptureApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9F422E47121F622BA5589D4D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7ECBF944FA986B6BD2182AC6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01E70284A24B480454CCA443;
+			remoteInfo = TasteCaptureShare;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7305C0B920EAF0BA98580F80 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CDCDEAFD95604B8637499D71 /* TasteCaptureShare.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		5FA639C06D7F04783D40B805 /* TasteCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasteCaptureApp.swift; sourceTree = "<group>"; };
+		69CBB7ABF57F29BC7545B21A /* TasteCaptureKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TasteCaptureKit; path = TasteCaptureKit; sourceTree = SOURCE_ROOT; };
+		713DE8AE5DF502D73F75C3F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		72793A98F881AE01162FD884 /* TasteCapture.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TasteCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7686B8FCAF0ACF13D3092A3B /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		7FE0CBF99248F1EC9AA50346 /* TasteCapture.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TasteCapture.entitlements; sourceTree = "<group>"; };
+		87E45D63D46C08F735551115 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		8B047581CF79AA97B10AF1D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C2CFF16FFC1E5E794E4E68BC /* CaptureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureViewModel.swift; sourceTree = "<group>"; };
+		CFB2A13C246D5ED7AB4AF884 /* TasteCaptureShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TasteCaptureShare.entitlements; sourceTree = "<group>"; };
+		D064A2C68DCE702B4D6AE112 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		ED779E83AE2B3377250F916F /* SharePreprocessor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = SharePreprocessor.js; sourceTree = "<group>"; };
+		F4B3ECF163D8FB1B60033405 /* TasteCaptureShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = TasteCaptureShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4D8D1952E5DEF0374ED4AB13 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EC89BBCCAB54713DD0251A21 /* TasteCaptureKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E7BD502610EA478A3F42270 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E6673BEFC97BEA54CB878A6 /* TasteCaptureKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0902B7CA3F67130EAC1B0112 = {
+			isa = PBXGroup;
+			children = (
+				488748F6C62899982B54CCE5 /* Packages */,
+				E4F1B0B1901F30D89B89982F /* TasteCapture */,
+				5DAD25A1BFE0EB05C2AF823E /* TasteCaptureShare */,
+				0D8AD1307918CBDC235C0E60 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0D8AD1307918CBDC235C0E60 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				72793A98F881AE01162FD884 /* TasteCapture.app */,
+				F4B3ECF163D8FB1B60033405 /* TasteCaptureShare.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		488748F6C62899982B54CCE5 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				69CBB7ABF57F29BC7545B21A /* TasteCaptureKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		5DAD25A1BFE0EB05C2AF823E /* TasteCaptureShare */ = {
+			isa = PBXGroup;
+			children = (
+				D064A2C68DCE702B4D6AE112 /* CaptureView.swift */,
+				C2CFF16FFC1E5E794E4E68BC /* CaptureViewModel.swift */,
+				8B047581CF79AA97B10AF1D0 /* Info.plist */,
+				ED779E83AE2B3377250F916F /* SharePreprocessor.js */,
+				7686B8FCAF0ACF13D3092A3B /* ShareViewController.swift */,
+				CFB2A13C246D5ED7AB4AF884 /* TasteCaptureShare.entitlements */,
+			);
+			path = TasteCaptureShare;
+			sourceTree = "<group>";
+		};
+		E4F1B0B1901F30D89B89982F /* TasteCapture */ = {
+			isa = PBXGroup;
+			children = (
+				713DE8AE5DF502D73F75C3F0 /* Info.plist */,
+				87E45D63D46C08F735551115 /* SettingsView.swift */,
+				7FE0CBF99248F1EC9AA50346 /* TasteCapture.entitlements */,
+				5FA639C06D7F04783D40B805 /* TasteCaptureApp.swift */,
+			);
+			path = TasteCapture;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		01E70284A24B480454CCA443 /* TasteCaptureShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17B926B9F1D16359385BD60F /* Build configuration list for PBXNativeTarget "TasteCaptureShare" */;
+			buildPhases = (
+				96C2E4D5C90A26C2B90A75B6 /* Sources */,
+				90EC9A791D0F8C10F8FF98EF /* Resources */,
+				7E7BD502610EA478A3F42270 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TasteCaptureShare;
+			packageProductDependencies = (
+				836EAA0A6D058EC36C9208E5 /* TasteCaptureKit */,
+			);
+			productName = TasteCaptureShare;
+			productReference = F4B3ECF163D8FB1B60033405 /* TasteCaptureShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		D2BC145F1089B58F333A3BE2 /* TasteCapture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 06552545A0B3C0D47801E559 /* Build configuration list for PBXNativeTarget "TasteCapture" */;
+			buildPhases = (
+				96DF4366D30DAAB3680926E5 /* Sources */,
+				4D8D1952E5DEF0374ED4AB13 /* Frameworks */,
+				7305C0B920EAF0BA98580F80 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B46B4ACA957B38C95645ADA1 /* PBXTargetDependency */,
+			);
+			name = TasteCapture;
+			packageProductDependencies = (
+				9083E4B946722201BA3F79D2 /* TasteCaptureKit */,
+			);
+			productName = TasteCapture;
+			productReference = 72793A98F881AE01162FD884 /* TasteCapture.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7ECBF944FA986B6BD2182AC6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					01E70284A24B480454CCA443 = {
+						DevelopmentTeam = 7L482847WS;
+						ProvisioningStyle = Automatic;
+					};
+					D2BC145F1089B58F333A3BE2 = {
+						DevelopmentTeam = 7L482847WS;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 967865A8E90BE1B544DA7201 /* Build configuration list for PBXProject "TasteCapture" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0902B7CA3F67130EAC1B0112;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F54ACAE9A9A44C5DA4CCC2D5 /* XCLocalSwiftPackageReference "TasteCaptureKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0D8AD1307918CBDC235C0E60 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D2BC145F1089B58F333A3BE2 /* TasteCapture */,
+				01E70284A24B480454CCA443 /* TasteCaptureShare */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		90EC9A791D0F8C10F8FF98EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D226B4465F58508BB4E1F1EF /* SharePreprocessor.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		96C2E4D5C90A26C2B90A75B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6DA19B2922750B1E73D8D78 /* CaptureView.swift in Sources */,
+				37D24C281B8F3A4A88381F74 /* CaptureViewModel.swift in Sources */,
+				E48EF6D4420667AC6970E4BB /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96DF4366D30DAAB3680926E5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				374B3BBDB0BC7E9FD699194A /* SettingsView.swift in Sources */,
+				F6E58AA7DF2B13A140A5F468 /* TasteCaptureApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B46B4ACA957B38C95645ADA1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01E70284A24B480454CCA443 /* TasteCaptureShare */;
+			targetProxy = 9F422E47121F622BA5589D4D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		045647E0221094EEE1FEA219 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TasteCaptureShare/TasteCaptureShare.entitlements;
+				INFOPLIST_FILE = TasteCaptureShare/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = no.phareim.tastecapture.share;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0E2EEF7BEE81332EF47F7CC1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7L482847WS;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		483F6A3EFD44A47C76893FBC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TasteCapture/TasteCapture.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = TasteCapture/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = no.phareim.tastecapture;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4983ED869F951E359F968157 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TasteCaptureShare/TasteCaptureShare.entitlements;
+				INFOPLIST_FILE = TasteCaptureShare/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = no.phareim.tastecapture.share;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5958FE9E2B38E4B76558F7A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TasteCapture/TasteCapture.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = TasteCapture/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = no.phareim.tastecapture;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B23366CEBDFE660F79F172EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7L482847WS;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		06552545A0B3C0D47801E559 /* Build configuration list for PBXNativeTarget "TasteCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5958FE9E2B38E4B76558F7A8 /* Debug */,
+				483F6A3EFD44A47C76893FBC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		17B926B9F1D16359385BD60F /* Build configuration list for PBXNativeTarget "TasteCaptureShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				045647E0221094EEE1FEA219 /* Debug */,
+				4983ED869F951E359F968157 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		967865A8E90BE1B544DA7201 /* Build configuration list for PBXProject "TasteCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0E2EEF7BEE81332EF47F7CC1 /* Debug */,
+				B23366CEBDFE660F79F172EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F54ACAE9A9A44C5DA4CCC2D5 /* XCLocalSwiftPackageReference "TasteCaptureKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = TasteCaptureKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		836EAA0A6D058EC36C9208E5 /* TasteCaptureKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TasteCaptureKit;
+		};
+		9083E4B946722201BA3F79D2 /* TasteCaptureKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TasteCaptureKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 7ECBF944FA986B6BD2182AC6 /* Project object */;
+}

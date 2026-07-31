@@ -189,10 +189,61 @@ match; then a bare photo becomes `art`. An unrecognized source leaves **no kind
 selected and Save disabled** — deliberately unlike the Chrome extension, which
 quietly defaults to `reference`.
 
-**Setup:** `brew install xcodegen`, then `cd ios && xcodegen generate` (the
-`.xcodeproj` and the generated `Info.plist`/`.entitlements` files are not
-tracked — edit `project.yml`, never them), open the project, set your team, and
-Run onto the device. Paste the key into the host app once.
+**Editing the project:** `ios/project.yml` is the only thing you edit; run
+`cd ios && xcodegen generate` afterwards and commit the result. The
+`.xcodeproj`, the shared scheme and the generated `Info.plist`/`.entitlements`
+files **are tracked** — Xcode Cloud clones the repo and can't run xcodegen, so
+it needs them to exist. Regeneration is byte-stable, so this doesn't churn.
+Never hand-edit any of them; xcodegen overwrites them on every run.
+
+### Build & deploy
+
+Two paths, neither needing the Xcode GUI. Same rig as `sfl` and `sleeper-chat`
+— see `docs/superpowers/specs/2026-07-31-xcode-cloud-testflight-design.md`.
+
+**1. Direct to a plugged-in device (~1 min)**
+
+```bash
+ios/scripts/deploy-to-phone.sh          # first paired iPhone
+ios/scripts/deploy-to-phone.sh <udid>   # a specific device
+```
+
+Regenerates the project, then wraps `xcodebuild` + `xcrun devicectl`. This is a
+paid developer account, so dev builds last until the signing certificate
+expires, not 7 days. List devices with `xcrun devicectl list devices`.
+
+**2. TestFlight, over the air (~10–15 min)**
+
+Xcode Cloud → TestFlight internal testing. **The App Store Connect side isn't
+set up yet** — see the spec above for the one-time steps. Once it is: push to
+`main`, then open App Store Connect → Xcode Cloud → Builds → **Start Build**.
+
+> Assume the push auto-trigger does **not** work. It has never worked for
+> `sleeper-chat` (Xcode Cloud is never notified of pushes; the GitHub App,
+> its permissions and the path rule were all ruled out), so press Start Build.
+
+TestFlight builds expire after **90 days**.
+
+**Setup on the phone:** open the app once and paste the `TASTE_IOS_KEY`.
+
+### Gotchas
+
+- **The `TasteCapture` scheme must stay shared** (committed under
+  `TasteCapture.xcodeproj/xcshareddata/xcschemes/`). Xcode Cloud only builds
+  shared schemes and pins the app target by UUID. xcodegen's UUIDs are derived
+  from target names, so they survive regeneration — but renaming a target will
+  break cloud builds until the scheme is regenerated.
+- **`INFOPLIST_KEY_*` build settings do nothing here.** They only apply with
+  `GENERATE_INFOPLIST_FILE = YES`; these targets have an explicit `info.path`,
+  so such keys must go in `project.yml`'s `info.properties`. The build gives no
+  warning — it silently drops them.
+- **`SKIP_INSTALL: YES` on the extension is load-bearing** and xcodegen won't
+  add it. Without it the `.appex` archives as a top-level product and the
+  TestFlight upload is rejected.
+- **`exportArchive` exit code 70** with everything else green is a transient
+  Apple managed-signing fault — rebuild.
+- **`ITMS-90129`** means the display name is taken on the App Store; change
+  `CFBundleDisplayName` in `project.yml`.
 
 ## Capture enrichment (`server/utils/enrich/`)
 
