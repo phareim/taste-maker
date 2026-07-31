@@ -112,4 +112,38 @@ echo "==> Uploading"
 xcrun altool --upload-app --type ios --file "$IPA" \
   --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
 
-echo "==> Done. Processing takes a few minutes, then it appears in TestFlight."
+# Uploading isn't enough: a build only reaches testers once it's attached to a
+# group, and it can't be attached until Apple finishes processing it. Poll,
+# then attach — otherwise every release needs a visit to the web UI.
+APP_ID="${ASC_APP_ID:-6796821103}"
+GROUP_ID="${ASC_GROUP_ID:-dc4b03e1-07ab-456f-ba4d-e21f5c0333d6}"
+API=https://api.appstoreconnect.apple.com/v1
+
+echo "==> Waiting for processing"
+BUILD_ID=""
+for _ in $(seq 1 60); do
+  token=$("$(dirname "$0")/asc-token.sh")
+  BUILD_ID=$(curl -s -H "Authorization: Bearer $token" \
+    "$API/builds?filter%5Bapp%5D=$APP_ID&filter%5Bversion%5D=$BUILD_NUMBER&filter%5BprocessingState%5D=VALID&fields%5Bbuilds%5D=version" \
+    | sed -n 's/.*"id" *: *"\([0-9a-f-]\{36\}\)".*/\1/p' | head -1)
+  [ -n "$BUILD_ID" ] && break
+  sleep 15
+done
+
+if [ -z "$BUILD_ID" ]; then
+  echo "!! Build $BUILD_NUMBER uploaded but hasn't finished processing." >&2
+  echo "   It'll appear in TestFlight shortly; attach it to a group there." >&2
+  exit 0
+fi
+
+echo "==> Attaching build $BUILD_NUMBER to the tester group"
+token=$("$(dirname "$0")/asc-token.sh")
+code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+  -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
+  -d "{\"data\":[{\"type\":\"builds\",\"id\":\"$BUILD_ID\"}]}" \
+  "$API/betaGroups/$GROUP_ID/relationships/builds")
+if [ "$code" = "204" ]; then
+  echo "==> Done. Build $BUILD_NUMBER is live in TestFlight."
+else
+  echo "!! Attach returned HTTP $code — add it to the group in App Store Connect." >&2
+fi
