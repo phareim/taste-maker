@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Used by ios/scripts/testflight.sh, the local alternative to Xcode
+	     Cloud. Xcode Cloud does not read this file — it signs in the cloud. -->
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>teamID</key>
+	<string>7L482847WS</string>
+	<!-- Let Xcode create/fetch the distribution certificate and App Store
+	     profiles for the app and its extension, rather than pinning profile
+	     names that would rot. -->
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<!-- Export only; the script uploads separately so a failed upload doesn't
+	     mean re-archiving. -->
+	<key>destination</key>
+	<string>export</string>
+	<key>uploadSymbols</key>
+	<true/>
+	<key>manageAppVersionAndBuildNumber</key>
+	<true/>
+</dict>
+</plist>

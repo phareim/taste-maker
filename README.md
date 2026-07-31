@@ -215,9 +215,23 @@ expires, not 7 days. List devices with `xcrun devicectl list devices`.
 
 **2. TestFlight, over the air (~10–15 min)**
 
-Xcode Cloud → TestFlight internal testing. **The App Store Connect side isn't
-set up yet** — see the spec above for the one-time steps. Once it is: push to
-`main`, then open App Store Connect → Xcode Cloud → Builds → **Start Build**.
+Xcode Cloud → TestFlight internal testing. Everything mechanical is done and
+verified — bundle IDs registered, and a real signed App Store `.ipa` exports
+cleanly. **Two account-side steps remain**, both GUI-only: create the App Store
+Connect *app record*, then create the Xcode Cloud workflow. See the spec above.
+Once done: push to `main`, then App Store Connect → Xcode Cloud → Builds →
+**Start Build**.
+
+**3. TestFlight without Xcode Cloud (~5 min)**
+
+```bash
+ios/scripts/testflight.sh          # archive -> export -> upload
+```
+
+Needs the app record plus an App Store Connect API key (`ASC_KEY_ID`,
+`ASC_ISSUER_ID`); `--help` explains where to get them. Note the `.p8` in
+`~/Downloads` is sleeper-chat's **APNs** key, not an ASC key — it will always
+401 against the ASC API.
 
 > Assume the push auto-trigger does **not** work. It has never worked for
 > `sleeper-chat` (Xcode Cloud is never notified of pushes; the GitHub App,

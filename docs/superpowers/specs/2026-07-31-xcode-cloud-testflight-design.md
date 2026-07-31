@@ -35,14 +35,52 @@ the only thing you edit. Verified that `xcodegen generate` is byte-stable — tw
 consecutive runs produce an identical `project.pbxproj` — so this neither churns
 diffs nor changes the target UUIDs the Xcode Cloud scheme pins.
 
+## Status: everything mechanical is done; two account steps remain
+
+Verified working locally, end to end:
+
+- Both bundle IDs (`no.phareim.tastecapture`, `.share`) are **already
+  registered** on the developer portal — automatic signing created them during
+  the device builds.
+- A **real App Store distribution build exports successfully**:
+  `xcodebuild archive` → `-exportArchive` with `ExportOptions.plist` produces a
+  signed 276K `.ipa`, team `7L482847WS`, extension nested under `PlugIns/`,
+  embedded profile "iOS Team Store Provisioning Profile" with
+  `get-task-allow = false` and no provisioned devices (i.e. genuinely App
+  Store, not ad-hoc), and `ITSAppUsesNonExemptEncryption` present.
+
+So nothing about the project, signing, or packaging is in doubt. What is left
+cannot be done from a terminal:
+
+1. **The App Store Connect app record.** Registering a bundle ID and creating
+   an app record are different things; only the second is missing, and it
+   exists only in the web UI (or via the ASC API — see below).
+2. **Either** an Xcode Cloud workflow (Xcode GUI) **or** an App Store Connect
+   API key for the local upload path (`ios/scripts/testflight.sh`).
+
+### There is no App Store Connect API key on this machine
+
+Worth recording, because it looks like there is one. `~/Downloads/2026/
+AuthKey_P6M4K4S28H.p8` is byte-identical to `sleeper-chat/tasks/certs/AuthKey.p8`
+— it is the **APNs push key**, a different kind of credential that will always
+return 401 against `api.appstoreconnect.apple.com` no matter which issuer ID is
+paired with it. Confirmed against five candidate issuer UUIDs found on disk.
+
+A real one is created at App Store Connect → Users and Access → Integrations →
+App Store Connect API. With it, `ios/scripts/testflight.sh` ships a build in one
+command without Xcode Cloud at all.
+
 ## One-time setup (Mac + Xcode; outstanding)
 
-1. **App Store Connect record.** Register bundle IDs `no.phareim.tastecapture`
-   and `no.phareim.tastecapture.share`, and create an app record.
-   - **Pick a display name that isn't taken on the App Store** — a collision
-     bounces uploads with `ITMS-90129`. This is why sleeper-chat is named
-     `SleeperChat` and not `Sleep`. Current `CFBundleDisplayName` is
-     `taste-maker`; change it in `project.yml` if App Store Connect rejects it.
+1. **App Store Connect record.** The bundle IDs are already registered, so this
+   is only: App Store Connect → Apps → **+** → New App, platform iOS, bundle ID
+   `no.phareim.tastecapture`, and an SKU (anything — `taste-maker` is fine).
+   - **Pick a name that isn't taken on the App Store** — a collision bounces
+     uploads with `ITMS-90129`. This is why sleeper-chat is named `SleeperChat`
+     and not `Sleep`. `taste-maker` is generic enough to be at risk; if it's
+     rejected, any unique name works there, and `CFBundleDisplayName` in
+     `project.yml` controls what shows under the icon on the phone
+     independently.
 2. **Create the workflow.** Xcode → Product → Xcode Cloud → Create Workflow for
    the `TasteCapture` scheme. Approve the App Store Connect GitHub App for
    `phareim/taste-maker` (it's already installed on the account for the sibling
