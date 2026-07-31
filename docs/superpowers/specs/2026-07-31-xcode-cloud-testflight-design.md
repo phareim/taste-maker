@@ -35,7 +35,28 @@ the only thing you edit. Verified that `xcodegen generate` is byte-stable — tw
 consecutive runs produce an identical `project.pbxproj` — so this neither churns
 diffs nor changes the target UUIDs the Xcode Cloud scheme pins.
 
-## Status: everything mechanical is done; two account steps remain
+## Outcome (2026-07-31): shipping via the local path, not Xcode Cloud
+
+Build **1.0 (1)** is on TestFlight. App record **Bowerbird**, Apple ID
+`6796821103`, bundle `no.phareim.tastecapture`, internal group `Internal`.
+
+The Xcode Cloud workflow was **not** created — the local route turned out to be
+both faster to set up and better suited here. `ios/scripts/testflight.sh`
+archives, exports, validates and uploads in one command, with no GUI and no
+webhook to be broken (sleeper-chat's push auto-trigger has never worked, so
+Xcode Cloud was going to be a button press anyway). Xcode Cloud remains an
+option if a hosted build ever becomes worth it; nothing here blocks it, since
+the shared scheme and committed project are exactly what it needs.
+
+Two things had to come from a human: enabling App Store Connect API access
+(an org-level terms acceptance) and generating the key. Everything else —
+app record, group creation, build attachment, upload — went through the API
+or the web UI under automation.
+
+Credentials: key in `~/.appstoreconnect/private_keys/AuthKey_UT5A5HQWH4.p8`,
+IDs in `~/.config/taste/asc-env`, both `600`.
+
+## Status of the Xcode Cloud route (unused but ready)
 
 Verified working locally, end to end:
 

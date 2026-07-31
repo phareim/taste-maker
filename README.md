@@ -222,16 +222,26 @@ Connect *app record*, then create the Xcode Cloud workflow. See the spec above.
 Once done: push to `main`, then App Store Connect → Xcode Cloud → Builds →
 **Start Build**.
 
-**3. TestFlight without Xcode Cloud (~5 min)**
+**3. TestFlight without Xcode Cloud (~5 min) — this is the working path**
 
 ```bash
-ios/scripts/testflight.sh          # archive -> export -> upload
+source ~/.config/taste/asc-env && ios/scripts/testflight.sh
 ```
 
-Needs the app record plus an App Store Connect API key (`ASC_KEY_ID`,
-`ASC_ISSUER_ID`); `--help` explains where to get them. Note the `.p8` in
-`~/Downloads` is sleeper-chat's **APNs** key, not an ASC key — it will always
-401 against the ASC API.
+Archives, exports, validates and uploads. Credentials are already set up:
+the API key is in `~/.appstoreconnect/private_keys/` (altool finds it there)
+and the key/issuer IDs are in `~/.config/taste/asc-env`, both `600`.
+
+The App Store listing is **Bowerbird** (Apple ID `6796821103`) — a bird that
+collects beautiful objects and arranges them to its own taste, which is the
+app. The home-screen name stays `taste-maker`, matching the T icon. Build 1.0
+(1) shipped 2026-07-31 to the `Internal` group.
+
+Bump `CFBundleVersion` in `project.yml` before each upload — App Store Connect
+rejects a build number it has already seen.
+
+> Beware: the `.p8` in `~/Downloads/2026` is sleeper-chat's **APNs** key, not
+> an ASC key. It looks identical and will always 401 against the ASC API.
 
 > Assume the push auto-trigger does **not** work. It has never worked for
 > `sleeper-chat` (Xcode Cloud is never notified of pushes; the GitHub App,
