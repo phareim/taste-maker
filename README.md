@@ -109,14 +109,33 @@ encounter in Reader, refine in taste-maker.
   different trust boundary than Worker-held ones). CORS-scoped to the
   extension's own fixed origin (see `server/utils/cors.ts`); handles its own
   `OPTIONS` preflight.
+- `POST /api/ingest/capture-image` — raw image bytes (`image/jpeg|png|heic|webp`),
+  max 8MB or `413`. Stores the object in the `taste-maker-images` R2 bucket
+  (binding `TASTE_IMAGES`) and returns `{url}` for the caller to pass back as a
+  normal `image_url`. Exists because iOS Share Sheet photos are bytes with no
+  URL, unlike Chrome's right-click-on-image — this keeps `/api/ingest/capture`'s
+  JSON contract untouched. Auth `Bearer <TASTE_IOS_KEY>`; no CORS (native only).
+- `GET /api/images/[key]` — serves those objects back. **No auth**: the same
+  visibility as every other `image_url` in the library, which are arbitrary
+  public URLs. Keys are UUIDs and objects are never overwritten, so responses
+  are `immutable`-cached for a year.
+- `POST /api/ingest/enrich` — `{url?, shared_text?, has_image?, page?}` →
+  `{kind, kind_confidence, kind_reason, title, creator, creator_source,
+  image_url, source_url}`. Suggests a kind and a creator for something the iOS
+  Share Extension is about to capture; see "Capture enrichment" below. Auth
+  `Bearer <TASTE_IOS_KEY>`; no CORS. **Never fails loudly** — every error path
+  returns 200 with null fields, because the client already has its own local
+  guess and enrichment must never block a capture.
 
 Auth for `/api/ingest/highlight*`: `Authorization: Bearer <TASTE_INGEST_KEY>`
 (Worker secret; host-side copy in `~/.config/taste/env`, shared with Reader
 as `NUXT_TASTE_INGEST_KEY`). Auth for `/api/ingest/capture`:
 `Authorization: Bearer <TASTE_EXTENSION_KEY>` (separate Worker secret, held
-only by the Chrome extension). Both: 503 when the relevant secret is unset,
-401 on mismatch. Reader's side of the highlight pipe (mirror-on-create,
-undo-on-delete, backfill script) lives in the reader repo.
+only by the Chrome extension). Auth for `/api/ingest/capture-image` and
+`/api/ingest/enrich`: `Authorization: Bearer <TASTE_IOS_KEY>` (third Worker
+secret, held only in the iOS app's Keychain). All three: 503 when the relevant
+secret is unset, 401 on mismatch. Reader's side of the highlight pipe
+(mirror-on-create, undo-on-delete, backfill script) lives in the reader repo.
 
 ## Chrome extension (`extension/`)
 
@@ -137,6 +156,49 @@ Captures from any page without a browser session, via
   `TASTE_EXTENSION_KEY` value (generated via `openssl rand -hex 32`, set on
   the Worker via `wrangler secret put TASTE_EXTENSION_KEY`) — stored in
   `chrome.storage.sync`.
+
+## Capture enrichment (`server/utils/enrich/`)
+
+Powers `POST /api/ingest/enrich`: given a shared URL, work out **which kind**
+the item is and **who made it**, so a capture is ideally zero typing.
+
+Four files, all pure functions except the route itself:
+
+- `domains.ts` — the kind-routing table. `open.spotify.com` → `music`,
+  `cos.com` → `clothing`, `artsy.net` → `art`, and so on. **This is the file
+  meant to be appended to**; adding a host is one line and a deploy.
+- `metadata.ts` — normalizes a page's head into `{title, meta, jsonLd}`, from
+  either a Worker-side fetch (parsed with `HTMLRewriter`, native to the Workers
+  runtime, so no HTML-parsing dependency) or from metadata the iOS extension's
+  JS preprocessor already scraped out of the live DOM.
+- `classify.ts` — kind + a confidence. Precedence: a text selection → `quote`
+  (beats everything — selecting a lyric on a Spotify page is a quote, not a
+  music item), then the domain table, then schema.org types (`Product` →
+  clothing, which is what catches *unlisted* retailers; `Article` → reference),
+  then a bare photo → art. **Only `high` confidence auto-selects a kind**;
+  anything less is offered as a suggestion and the user still picks.
+- `creator.ts` — the inference ladder, first rung to produce a usable value
+  wins, and each carries a provenance string shown under the field:
+  1. kind-aware JSON-LD (`MusicAlbum.byArtist`, `Product.brand`,
+     `VisualArtwork.creator`, `Article.author`)
+  2. Open Graph music vertical (`music:musician`)
+  3. plain author meta — and, when that meta is a *profile URL* rather than a
+     name, the author slug in its path (`/profile/dalya-alberge` → "Dalya Alberge")
+  4. per-host extractors (Spotify's `·`-delimited `og:description`, Apple
+     Music's "X by Y", a Bandcamp artist subdomain, SoundCloud, GitHub, Medium,
+     Substack, Instagram)
+  5. title patterns — `"X by Y"`, and a trailing `—`/`|`/`:` segment, **but
+     only when that segment isn't the site's own name**, or every article would
+     be attributed to its masthead
+  6. the Share Sheet's own text ("Dreams by Fleetwood Mac")
+  7. nothing — leave it blank
+
+  There is deliberately **no model in this path**. It is all deterministic
+  rules, and every result is normalized (entities decoded, `®`/`™` and legal
+  suffixes stripped, YouTube's `- Topic` removed) then rejected if it is over
+  80 chars, a URL, or identical to the title. A blank `creator` beats a
+  confident wrong one, because a wrong one gets silently committed to the
+  library.
 
 ## The refine ritual
 
@@ -215,11 +277,15 @@ Reader login at `taste.phareim.no`.
 
 ## Parked for v2 (explicitly out of v1)
 
-- URL auto-extraction (title/metadata scraping on paste)
+Two entries left this list with the iOS Share Extension: **URL auto-extraction**
+(now `server/utils/enrich/`, though only on the ingest path — pasting a URL into
+`/capture` still scrapes nothing) and **R2 / file uploads** (now
+`/api/ingest/capture-image`, though only for iOS photo shares — the web form
+still hotlinks image URLs only).
+
 - Claude-written rationale for items or connections
 - Active web discovery / search for new taste
 - SFL / sleeper-articles integration
 - Graph visualization of the connection web
-- R2 / file uploads (v1 hotlinks image URLs only)
 - Local D1 dev seed + offline story
 - Tuning the refine thresholds against real usage data

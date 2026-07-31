@@ -19,6 +19,13 @@ database_name = "taste-maker"
 database_id = "1ce61298-32ff-4714-bda7-b151bc9a9779"
 migrations_dir = "migrations"
 
+# Photo uploads from the iOS Share Extension. Raw Share Sheet photos have no
+# URL to reference directly, unlike Chrome's right-click-on-image. Created
+# once via `wrangler r2 bucket create taste-maker-images`.
+[[r2_buckets]]
+binding = "TASTE_IMAGES"
+bucket_name = "taste-maker-images"
+
 [[routes]]
 pattern = "taste.phareim.no"
 zone_name = "phareim.no"
@@ -27,4 +34,6 @@ custom_domain = true
 [vars]
 NUXT_ALLOWED_USER_EMAILS = "phareim@gmail.com"
 
-# Secret (wrangler secret put): NVIDIA_API_KEY — NIM embeddings bearer.
+# Secrets (wrangler secret put): NVIDIA_API_KEY — NIM embeddings bearer;
+# TASTE_INGEST_KEY — Reader highlight mirror; TASTE_EXTENSION_KEY — Chrome
+# extension; TASTE_IOS_KEY — iOS Share Extension.
