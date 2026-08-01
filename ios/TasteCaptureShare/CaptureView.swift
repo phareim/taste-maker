@@ -186,10 +186,14 @@ struct CaptureView: View {
                     .onChange(of: viewModel.body) { viewModel.markTouched(.body) }
             }
 
-            LabeledContent("Title") {
-                TextField("", text: $viewModel.title)
-                    .multilineTextAlignment(.trailing)
-                    .onChange(of: viewModel.title) { viewModel.markTouched(.title) }
+            // For music the track name IS the body ("Track"), so a separate
+            // short title carries nothing — same rule as the web form.
+            if viewModel.kind != "music" {
+                LabeledContent("Title") {
+                    TextField("", text: $viewModel.title)
+                        .multilineTextAlignment(.trailing)
+                        .onChange(of: viewModel.title) { viewModel.markTouched(.title) }
+                }
             }
 
             if viewModel.isImageKind {

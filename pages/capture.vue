@@ -57,7 +57,9 @@
         />
       </div>
 
-      <div>
+      <!-- For music the track name IS the body ("Track"), so a separate short
+           title carries nothing — the field only shows for the other kinds. -->
+      <div v-if="kind !== 'music'">
         <MonoLabel>Title</MonoLabel>
         <input v-model="title" type="text" class="tufte-input mt-1" placeholder="Optional short title" />
       </div>
@@ -240,7 +242,7 @@ watch(imageUrl, () => {
 const previewItem = computed<TasteItem>(() => ({
   id: 'preview',
   kind: kind.value,
-  title: title.value.trim() || null,
+  title: kind.value === 'music' ? null : title.value.trim() || null,
   body: body.value.trim() || title.value.trim() || '…',
   source_url: settledSourceUrl.value || null,
   creator: creator.value.trim() || null,
@@ -282,7 +284,8 @@ async function submit() {
     await create({
       kind: kind.value,
       body: body.value.trim(),
-      title: title.value.trim() || null,
+      // A title typed before the kind settled on music must not ride along.
+      title: kind.value === 'music' ? null : title.value.trim() || null,
       source_url: sourceUrl.value.trim() || null,
       creator: creator.value.trim() || null,
       note: note.value.trim() || null,

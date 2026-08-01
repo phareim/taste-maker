@@ -99,7 +99,7 @@ input:focus, textarea:focus {
   border-color: var(--accent);
 }
 
-#image-field.hidden {
+.field.hidden {
   display: none;
 }
 

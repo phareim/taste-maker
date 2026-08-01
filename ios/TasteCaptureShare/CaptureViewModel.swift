@@ -284,7 +284,9 @@ final class CaptureViewModel: ObservableObject {
             let payload = CapturePayload(
                 kind: kind,
                 body: trimmedBody,
-                title: nilIfEmpty(title),
+                // The Title field is hidden for music (the track name is the
+                // body) — a prefetched page title must not ride along.
+                title: kind == "music" ? nil : nilIfEmpty(title),
                 sourceURL: nilIfEmpty(sourceURL),
                 creator: nilIfEmpty(creator),
                 note: nilIfEmpty(note),

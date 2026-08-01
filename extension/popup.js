@@ -7,6 +7,7 @@ const els = {
   bodyLabel: document.getElementById('body-label'),
   creatorLabel: document.getElementById('creator-label'),
   imageField: document.getElementById('image-field'),
+  titleField: document.getElementById('title-field'),
   title: document.getElementById('title'),
   body: document.getElementById('body'),
   imageUrl: document.getElementById('image_url'),
@@ -26,6 +27,8 @@ function setKind(kind) {
     kind === 'quote' ? 'Quote' : imageKind ? 'Description' : kind === 'music' ? 'Track' : 'Body'
   els.creatorLabel.textContent = kind === 'clothing' ? 'Brand' : 'Creator'
   els.imageField.classList.toggle('hidden', !imageKind)
+  // For music the track name IS the body ("Track") — no separate short title.
+  els.titleField.classList.toggle('hidden', kind === 'music')
 }
 
 els.kindBtns.forEach((btn) => btn.addEventListener('click', () => setKind(btn.dataset.kind)))
@@ -116,7 +119,7 @@ async function submit(event) {
       body: JSON.stringify({
         kind: state.kind,
         body,
-        title: els.title.value.trim() || null,
+        title: state.kind === 'music' ? null : els.title.value.trim() || null,
         source_url: els.sourceUrl.value.trim() || null,
         creator: els.creator.value.trim() || null,
         note: els.note.value.trim() || null,
