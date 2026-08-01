@@ -70,21 +70,21 @@
         <iframe
           :src="embedUrl"
           :title="embedKind === 'spotify' ? 'Spotify player' : 'YouTube player'"
-          class="w-full block border-0"
-          :style="embedKind === 'spotify' ? 'height: 352px' : 'aspect-ratio: 16 / 9'"
+          class="block border-0"
+          :style="embedSizing"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
         />
         <!-- The player already names the track and artist — repeat nothing,
              keep only what it can't know. -->
-        <p v-if="item.note" class="p-4 sm:p-5 text-body italic">{{ item.note }}</p>
+        <p v-if="item.note" class="mt-3 text-body italic">{{ item.note }}</p>
       </template>
       <iframe
         v-else-if="playing && embedUrl"
         :src="embedKind === 'youtube' ? `${embedUrl}?autoplay=1` : embedUrl"
         :title="embedKind === 'spotify' ? 'Spotify player' : 'YouTube player'"
-        class="w-full block border-0"
-        :style="embedKind === 'spotify' ? 'height: 152px' : 'aspect-ratio: 16 / 9'"
+        class="block border-0"
+        :style="embedSizing"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       />
       <div v-else :class="isPalette ? 'flex items-center gap-3' : 'flex gap-0'">
@@ -190,8 +190,10 @@ const props = withDefaults(
 const isCard = computed(() => props.variant === 'card')
 const isLarge = computed(() => props.variant === 'large')
 const isPalette = computed(() => props.variant === 'palette')
-// Palette reads as a constellation, not a grid — no card frame there.
-const framed = computed(() => !isPalette.value)
+// Palette reads as a constellation, not a grid — no card frame there. And the
+// Spotify/YouTube players bring their own rounded chrome, so the hairline
+// frame yields whenever a live embed is showing.
+const framed = computed(() => !isPalette.value && !showsEmbed.value)
 
 // Quote type scale by passage length: short quotes keep the loud pull-quote
 // treatment; longer ones trade size for completeness. The clamp ceilings are
@@ -250,6 +252,14 @@ const embedUrl = computed(() => {
   return spotifyEmbedUrl(props.item.source_url) || youtubeEmbedUrl(props.item.source_url)
 })
 const embedKind = computed(() => (embedUrl.value?.includes('open.spotify.com') ? 'spotify' : 'youtube'))
+const showsEmbed = computed(() => props.item.kind === 'music' && !!embedUrl.value && (isLarge.value || playing.value))
+
+// iOS Safari sizes an iframe to its content's intrinsic width, ignoring
+// `width: 100%` — the classic `width: 1px; min-width: 100%` pins it to the
+// container so the player can't overflow the viewport on mobile.
+const embedSizing = computed(() =>
+  `width: 1px; min-width: 100%; ${embedKind.value === 'spotify' ? `height: ${isLarge.value ? 352 : 152}px;` : 'aspect-ratio: 16 / 9;'}`
+)
 
 // Public, no-auth oEmbed endpoints for a thumbnail lookup only — this is
 // deliberately NOT URL auto-extraction (that's out of scope for v1).
