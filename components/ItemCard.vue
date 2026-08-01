@@ -61,36 +61,68 @@
       </div>
     </div>
 
-    <!-- MUSIC — oEmbed thumbnail when the source_url resolves (YouTube/Spotify,
-         no-auth public endpoints); graceful glyph fallback otherwise. This is a
-         thumbnail lookup only, not URL extraction. -->
-    <div v-else-if="item.kind === 'music'" :class="isPalette ? 'flex items-center gap-3' : 'flex gap-0'">
-      <div
-        :class="[
-          'bg-paper-sunk overflow-hidden shrink-0 relative flex items-center justify-center',
-          isCard ? 'w-28 h-28' : '',
-          isLarge ? 'w-full sm:w-64 aspect-square sm:aspect-auto sm:h-64' : '',
-          isPalette ? 'w-16 h-16' : '',
-        ]"
-      >
-        <img
-          v-if="musicThumb"
-          :src="musicThumb"
-          :alt="oembed?.title || item.title || item.body"
-          class="w-full h-full object-cover"
+    <!-- MUSIC — the real player where it earns its weight, a facade where it
+         doesn't. The detail page embeds Spotify/YouTube directly; cards keep
+         the cheap oEmbed thumbnail and only swap in the live player on ▶ —
+         an iframe per grid card would boot a full player each. -->
+    <div v-else-if="item.kind === 'music'">
+      <template v-if="isLarge && embedUrl">
+        <iframe
+          :src="embedUrl"
+          :title="embedKind === 'spotify' ? 'Spotify player' : 'YouTube player'"
+          class="w-full block border-0"
+          :style="embedKind === 'spotify' ? 'height: 352px' : 'aspect-ratio: 16 / 9'"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
         />
-        <span v-else class="text-faint" style="font-size: 1.75rem;" aria-hidden="true">&#9835;</span>
-        <span
-          v-if="musicThumb"
-          class="absolute inset-0 flex items-center justify-center bg-black/10 text-white"
-          aria-hidden="true"
-        ><span style="font-size: 1rem;">&#9658;</span></span>
-      </div>
-      <div class="p-3 sm:p-4 min-w-0 flex-1">
-        <p class="text-ink truncate" :class="isLarge ? 'text-xl' : ''">{{ oembed?.title || item.title || item.body }}</p>
-        <MonoLabel v-if="oembed?.author_name || item.creator" class="mt-1">{{ oembed?.author_name || item.creator }}</MonoLabel>
-        <p v-if="isLarge && item.note" class="mt-3 text-body italic">{{ item.note }}</p>
+        <!-- The player already names the track and artist — repeat nothing,
+             keep only what it can't know. -->
+        <p v-if="item.note" class="p-4 sm:p-5 text-body italic">{{ item.note }}</p>
+      </template>
+      <iframe
+        v-else-if="playing && embedUrl"
+        :src="embedKind === 'youtube' ? `${embedUrl}?autoplay=1` : embedUrl"
+        :title="embedKind === 'spotify' ? 'Spotify player' : 'YouTube player'"
+        class="w-full block border-0"
+        :style="embedKind === 'spotify' ? 'height: 152px' : 'aspect-ratio: 16 / 9'"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      />
+      <div v-else :class="isPalette ? 'flex items-center gap-3' : 'flex gap-0'">
+        <div
+          :class="[
+            'bg-paper-sunk overflow-hidden shrink-0 relative flex items-center justify-center',
+            isCard ? 'w-28 h-28' : '',
+            isLarge ? 'w-full sm:w-64 aspect-square sm:aspect-auto sm:h-64' : '',
+            isPalette ? 'w-16 h-16' : '',
+          ]"
+        >
+          <img
+            v-if="musicThumb"
+            :src="musicThumb"
+            :alt="oembed?.title || item.title || item.body"
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <span v-else class="text-faint" style="font-size: 1.75rem;" aria-hidden="true">&#9835;</span>
+          <!-- Cards live inside NuxtLinks — .stop.prevent keeps ▶ from navigating. -->
+          <button
+            v-if="embedUrl"
+            type="button"
+            aria-label="Play preview"
+            class="absolute inset-0 flex items-center justify-center bg-black/10 text-white hover:bg-black/25 transition-colors"
+            @click.stop.prevent="playing = true"
+          ><span style="font-size: 1rem;" aria-hidden="true">&#9658;</span></button>
+          <span
+            v-else-if="musicThumb"
+            class="absolute inset-0 flex items-center justify-center bg-black/10 text-white"
+            aria-hidden="true"
+          ><span style="font-size: 1rem;">&#9658;</span></span>
+        </div>
+        <div class="p-3 sm:p-4 min-w-0 flex-1">
+          <p class="text-ink truncate" :class="isLarge ? 'text-xl' : ''">{{ oembed?.title || item.title || item.body }}</p>
+          <MonoLabel v-if="oembed?.author_name || item.creator" class="mt-1">{{ oembed?.author_name || item.creator }}</MonoLabel>
+          <p v-if="isLarge && item.note" class="mt-3 text-body italic">{{ item.note }}</p>
+        </div>
       </div>
     </div>
 
@@ -198,6 +230,27 @@ const oembed = ref<OEmbedData | null>(null)
 // fall back to it rather than dropping to the bare music glyph.
 const musicThumb = computed(() => oembed.value?.thumbnail_url || props.item.image_url || null)
 
+// ————— Live player embeds. Both are keyless: Spotify serves an iframe player
+// at /embed/<type>/<id> (30s preview anonymous, full playback when the visitor
+// is logged in), YouTube via the nocookie host. Derived from source_url alone.
+const playing = ref(false)
+
+// Spotify links sometimes carry a locale segment (open.spotify.com/intl-de/…)
+// that the embed path must not.
+function spotifyEmbedUrl(url: string): string | null {
+  const m = url.match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/i)
+  return m ? `https://open.spotify.com/embed/${m[1].toLowerCase()}/${m[2]}` : null
+}
+function youtubeEmbedUrl(url: string): string | null {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?[^#]*v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/i)
+  return m ? `https://www.youtube-nocookie.com/embed/${m[1]}` : null
+}
+const embedUrl = computed(() => {
+  if (props.item.kind !== 'music' || !props.item.source_url) return null
+  return spotifyEmbedUrl(props.item.source_url) || youtubeEmbedUrl(props.item.source_url)
+})
+const embedKind = computed(() => (embedUrl.value?.includes('open.spotify.com') ? 'spotify' : 'youtube'))
+
 // Public, no-auth oEmbed endpoints for a thumbnail lookup only — this is
 // deliberately NOT URL auto-extraction (that's out of scope for v1).
 function oembedEndpoint(url: string): string | null {
@@ -228,6 +281,7 @@ onMounted(() => {
 watch(
   () => props.item.source_url,
   () => {
+    playing.value = false // a new source means the old player is stale
     if (import.meta.client) loadOEmbed()
   }
 )
