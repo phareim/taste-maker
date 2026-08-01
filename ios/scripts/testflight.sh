@@ -40,7 +40,11 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   exit 0
 fi
 
-cd "$(dirname "$0")/.."
+# Resolve the script's own directory absolutely BEFORE cd-ing: with a relative
+# invocation ("./ios/scripts/testflight.sh"), $(dirname "$0") stops pointing at
+# anything real after the cd, which used to kill the attach step post-upload.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
 : "${ASC_KEY_ID:?set ASC_KEY_ID (see $0 --help)}"
 : "${ASC_ISSUER_ID:?set ASC_ISSUER_ID (see $0 --help)}"
@@ -122,7 +126,7 @@ API=https://api.appstoreconnect.apple.com/v1
 echo "==> Waiting for processing"
 BUILD_ID=""
 for _ in $(seq 1 60); do
-  token=$("$(dirname "$0")/asc-token.sh")
+  token=$("$SCRIPT_DIR/asc-token.sh")
   BUILD_ID=$(curl -s -H "Authorization: Bearer $token" \
     "$API/builds?filter%5Bapp%5D=$APP_ID&filter%5Bversion%5D=$BUILD_NUMBER&filter%5BprocessingState%5D=VALID&fields%5Bbuilds%5D=version" \
     | sed -n 's/.*"id" *: *"\([0-9a-f-]\{36\}\)".*/\1/p' | head -1)
@@ -137,7 +141,7 @@ if [ -z "$BUILD_ID" ]; then
 fi
 
 echo "==> Attaching build $BUILD_NUMBER to the tester group"
-token=$("$(dirname "$0")/asc-token.sh")
+token=$("$SCRIPT_DIR/asc-token.sh")
 code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
   -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
   -d "{\"data\":[{\"type\":\"builds\",\"id\":\"$BUILD_ID\"}]}" \
