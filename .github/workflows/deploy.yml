@@ -12,7 +12,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm install
@@ -23,12 +23,14 @@ jobs:
       # so the Worker never ships ahead of its schema.
       - uses: cloudflare/wrangler-action@v3
         with:
+          wranglerVersion: "4.128.0"  # action defaults to wrangler 3.90.0, which now exits 1 before running
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply taste-maker --remote
 
       - uses: cloudflare/wrangler-action@v3
         with:
+          wranglerVersion: "4.128.0"  # action defaults to wrangler 3.90.0, which now exits 1 before running
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
