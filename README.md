@@ -18,6 +18,22 @@ Live: **https://taste.phareim.no**, behind Reader's login. (Deployed via
 GitHub Actions on 2026-07-13; the `taste.phareim.no` custom domain was bound
 by the CI Cloudflare token.)
 
+**Design (2026-09-02):** the app wears the design system's tactile *paper*
+layer, mirrored from write-web, do-web and the Reader — `<body>` is a grained
+desk, the app nav and each page's header sit on the desk, the page body is one
+`.tufte-sheet` lying on it, a framed `ItemCard` (library grid, refine pair) is a
+small sheet on the page sheet (`.tufte-sheet--card`), the toast is a small
+sheet, type is letterpressed (images and code exempt), rules are debossed on
+paper and embossed on the desk (`HairlineRule desk`), chips, the capture/refine
+pills and the inputs are pressed into the paper. Tokens and surfaces are
+vendored in `assets/css/tufte.css` (from the tufte-viz skill's
+`tokens/paper.css`, dark palette on `prefers-color-scheme`); the app-specific
+application (`.hairline`, `.action-label`, `.page-sheet`, `.tufte-sheet--card`,
+`.tufte-input`) is in `assets/css/main.css`. Drop the `tufte-tactile` html
+class in `nuxt.config.ts` to fall back to flat paper. Any new surface that
+paints its own paper must restore the `--text-*` / `--border-*` aliases the
+desk re-maps (see `.tufte-sheet`).
+
 ## Why this is not "SFL with a skin"
 
 1. **Heterogeneous media rendered as themselves.** Quotes are pull-quotes,

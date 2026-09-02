@@ -9,8 +9,11 @@
       <MonoLabel v-if="statusLabel" accent>{{ statusLabel }}</MonoLabel>
     </nav>
 
+    <!-- The item is one sheet of paper lying on the desk; the nav row above
+         sits on the desk itself. -->
+    <div class="tufte-sheet page-sheet mt-5 px-5 py-5 sm:px-7 sm:py-6">
     <template v-if="item">
-      <header class="mt-6">
+      <header>
         <MonoLabel dash>{{ kindLabel }}</MonoLabel>
       </header>
 
@@ -84,8 +87,7 @@
     </template>
 
     <template v-else-if="notFound">
-      <HairlineRule class="mt-6" />
-      <p class="mt-8 text-mute italic">This item does not exist (anymore).</p>
+      <p class="text-mute italic">This item does not exist (anymore).</p>
       <NuxtLink
         to="/"
         class="mt-4 inline-block font-mono uppercase text-accent-ink"
@@ -93,7 +95,8 @@
       >&mdash; Back to the library</NuxtLink>
     </template>
 
-    <p v-else class="mt-8 text-mute italic">Loading…</p>
+    <p v-else class="text-mute italic">Loading…</p>
+    </div>
   </main>
 </template>
 

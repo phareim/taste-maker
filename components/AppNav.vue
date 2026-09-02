@@ -15,7 +15,7 @@
         >{{ link.label }}</NuxtLink>
       </nav>
     </div>
-    <HairlineRule class="mt-4" />
+    <HairlineRule class="mt-4" desk />
   </header>
 </template>
 

@@ -8,7 +8,7 @@
   -->
   <div
     :class="[
-      framed ? 'border border-rule-strong bg-paper-raised overflow-hidden' : '',
+      framed ? 'card-frame tufte-sheet tufte-sheet--card border border-rule-strong bg-paper-raised overflow-hidden' : '',
       isPalette ? 'palette-card' : '',
     ]"
   >

@@ -7,10 +7,13 @@
       </div>
       <MonoLabel v-if="loaded">{{ items.length }} item{{ items.length === 1 ? '' : 's' }}</MonoLabel>
     </header>
-    <HairlineRule class="mt-4" />
+    <HairlineRule class="mt-4" desk />
 
+    <!-- The library is one sheet of paper lying on the desk; the header
+         above sits on the desk itself. -->
+    <div class="tufte-sheet page-sheet mt-5 px-5 py-5 sm:px-7 sm:py-6">
     <!-- Kind filter row -->
-    <nav class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Filter by kind">
+    <nav class="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Filter by kind">
       <button
         v-for="f in KIND_FILTERS"
         :key="f.key"
@@ -60,6 +63,7 @@
       >
         <ItemCard :item="item" variant="card" />
       </NuxtLink>
+    </div>
     </div>
   </main>
 </template>

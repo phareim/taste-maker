@@ -11,10 +11,13 @@
         style="font-size: 10px; letter-spacing: 0.16em;"
       >{{ streak }} this sitting</span>
     </header>
-    <HairlineRule class="mt-4" />
+    <HairlineRule class="mt-4" desk />
 
+    <!-- The sitting is one sheet of paper lying on the desk; the header
+         above sits on the desk itself. -->
+    <div class="tufte-sheet page-sheet mt-5 px-5 py-5 sm:px-7 sm:py-6">
     <!-- Kind pin -->
-    <nav class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Pin a kind">
+    <nav class="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Pin a kind">
       <button
         v-for="opt in KIND_PIN_OPTIONS"
         :key="opt.label"
@@ -36,8 +39,8 @@
         type="button"
         role="switch"
         :aria-checked="wildcard"
-        class="border px-3 py-1.5 font-mono uppercase transition-colors"
-        :class="wildcard ? 'border-accent text-accent-ink' : 'border-rule text-mute hover:border-rule-strong hover:text-ink'"
+        class="action-label border px-3 py-1.5 font-mono uppercase transition-colors"
+        :class="wildcard ? 'action-label--accent border-accent text-accent-ink' : 'border-rule text-mute hover:border-rule-strong hover:text-ink'"
         style="font-size: 10px; letter-spacing: 0.16em; border-radius: 0;"
         @click="wildcard = !wildcard"
       >{{ wildcard ? '✓ Wildcard' : 'Wildcard' }}</button>
@@ -116,6 +119,7 @@
           &larr; pick &nbsp;&middot;&nbsp; space skip &nbsp;&middot;&nbsp; pick &rarr;
         </p>
       </div>
+    </div>
     </div>
   </main>
 </template>

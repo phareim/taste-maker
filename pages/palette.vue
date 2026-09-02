@@ -7,11 +7,14 @@
         {{ canonItems.length }} kept out of everything captured.
       </p>
     </header>
-    <HairlineRule class="mt-6" />
+    <HairlineRule class="mt-6" desk />
 
-    <p v-if="loading && !loaded" class="mt-20 text-center text-mute italic">Loading…</p>
+    <!-- The palette is one sheet of paper lying on the desk — the app's face;
+         the header above sits on the desk itself. -->
+    <div class="tufte-sheet page-sheet mt-6 px-5 py-6 sm:px-8 sm:py-8">
+    <p v-if="loading && !loaded" class="mt-14 text-center text-mute italic">Loading…</p>
 
-    <div v-else-if="canonItems.length === 0" class="mt-24 text-center">
+    <div v-else-if="canonItems.length === 0" class="mt-16 text-center">
       <p class="text-mute italic">Nothing has earned its place yet.</p>
       <NuxtLink to="/refine" class="inline-block mt-4">
         <ActionLabel accent>Start refining</ActionLabel>
@@ -22,7 +25,7 @@
       <section
         v-for="(group, gi) in groups"
         :key="group.kind"
-        :class="gi === 0 ? 'mt-12' : 'mt-20'"
+        :class="gi === 0 ? '' : 'mt-20'"
       >
         <MonoLabel dash>{{ group.label }}</MonoLabel>
         <HairlineRule class="mt-3" />
@@ -58,6 +61,7 @@
         </div>
       </section>
     </template>
+    </div>
   </main>
 </template>
 

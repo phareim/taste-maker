@@ -27,3 +27,76 @@ select:focus-visible {
   border-bottom-color: var(--tufte-accent);
   outline: none;
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Paper on the desk — how taste-maker wears the tactile layer (2026-09-02,
+   mirrored from write-web's 468cb60 / do-web's 186778e / the Reader's d389e57).
+
+   The model: <body> is the desk (grained, dark, light ink); the app nav and
+   each page's header sit on the desk; the page body is one .tufte-sheet
+   lying on it (.page-sheet); a framed ItemCard is a small sheet lying on the
+   page sheet (.tufte-sheet--card); the toast is a small sheet. Surfaces that
+   paint their own paper — the ActionLabel chip, the capture/refine pills and
+   the .tufte-input well — restore the paper ink tokens the desk re-mapped, so
+   they read the same on desk and sheet.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* HairlineRule: pressed into paper (deboss) or into the desk (emboss). */
+.tufte-tactile .hairline {
+  height: 2px;
+  border: 0;
+  background: var(--rule-deboss);
+}
+.tufte-tactile .hairline--desk {
+  background: var(--rule-emboss);
+}
+
+/* The bordered chip (ActionLabel, and the kind/wildcard pills that share its
+   look): a paper button pressed into whatever it sits on. */
+.tufte-tactile .action-label {
+  background: var(--surface-button);
+  box-shadow: var(--press-secondary);
+  text-shadow: var(--text-press);
+  color: var(--ink-quiet);
+  border-color: var(--rule-strong);
+  --text-accent: var(--accent-ink);
+}
+.tufte-tactile .action-label:hover:not(:disabled) {
+  color: var(--tufte-ink);
+  border-color: var(--rule-strong);
+}
+.tufte-tactile .action-label.action-label--accent {
+  color: var(--accent-ink);
+  border-color: var(--tufte-accent);
+}
+.tufte-tactile .action-label:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* A page is one sheet lying on the desk: it fills the screen even when the
+   list is short, so an empty library is still a sheet, not a scrap. */
+.page-sheet {
+  min-height: calc(100dvh - 12rem);
+}
+
+/* A framed card (ItemCard on the library grid, the refine pair, CardFrame)
+   is a small sheet lying on the page sheet: the light paper-on-paper shadow,
+   not the desk-depth one, and the hairline frame gives way to the edge. */
+.tufte-tactile .tufte-sheet--card {
+  box-shadow: var(--shadow-paper);
+}
+.tufte-tactile .card-frame {
+  border-color: transparent;
+}
+
+/* Text inputs and textareas: a shallow well pressed into the paper. */
+.tufte-tactile .tufte-input {
+  background: var(--paper-sunk);
+  box-shadow: var(--press-secondary);
+  border-bottom-color: transparent;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.tufte-tactile .tufte-input:focus {
+  border-bottom-color: var(--tufte-accent);
+}

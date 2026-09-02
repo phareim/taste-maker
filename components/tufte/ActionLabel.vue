@@ -1,8 +1,9 @@
 <template>
   <button
     type="button"
-    class="border font-mono uppercase transition-colors duration-150 select-none disabled:opacity-40 disabled:cursor-not-allowed"
+    class="action-label border font-mono uppercase transition-colors duration-150 select-none disabled:opacity-40 disabled:cursor-not-allowed"
     :class="[
+      accent ? 'action-label--accent' : '',
       accent
         ? 'border-accent text-accent-ink'
         : 'border-rule text-mute hover:border-rule-strong hover:text-ink',

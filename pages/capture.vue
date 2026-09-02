@@ -4,9 +4,12 @@
       <MonoLabel dash>Capture</MonoLabel>
       <h1 class="mt-1 text-3xl">Add to the library</h1>
     </header>
-    <HairlineRule class="mt-4" />
+    <HairlineRule class="mt-4" desk />
 
-    <form class="mt-8 space-y-6" @submit.prevent="submit" @keydown.meta.enter.prevent="submit" @keydown.ctrl.enter.prevent="submit">
+    <!-- The form is one sheet of paper lying on the desk; the header above
+         sits on the desk itself. -->
+    <div class="tufte-sheet page-sheet mt-5 px-5 py-6 sm:px-7 sm:py-7">
+    <form class="space-y-6" @submit.prevent="submit" @keydown.meta.enter.prevent="submit" @keydown.ctrl.enter.prevent="submit">
       <!-- Source leads: pasting a link is the fast path. The server looks at
            the page, decides the kind, and fills what it can. -->
       <div>
@@ -39,8 +42,8 @@
           type="button"
           role="radio"
           :aria-checked="kind === k.value"
-          class="border px-3 py-1.5 font-mono uppercase transition-colors"
-          :class="kind === k.value ? 'border-accent text-accent-ink' : 'border-rule text-mute hover:border-rule-strong hover:text-ink'"
+          class="action-label border px-3 py-1.5 font-mono uppercase transition-colors"
+          :class="kind === k.value ? 'action-label--accent border-accent text-accent-ink' : 'border-rule text-mute hover:border-rule-strong hover:text-ink'"
           style="font-size: 10px; letter-spacing: 0.16em; border-radius: 0;"
           @click="kind = k.value"
         >{{ k.label }}</button>
@@ -107,6 +110,7 @@
         <ActionLabel accent :disabled="!canSubmit || submitting" @click="submit">{{ submitting ? 'Saving…' : 'Capture' }}</ActionLabel>
       </footer>
     </form>
+    </div>
   </main>
 </template>
 
