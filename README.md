@@ -7,7 +7,7 @@ embedding-based "related" neighbours across all kinds; draw explicit
 connections; and run an A-vs-B **refine ritual** that promotes items from
 `captured` to `canon` — the refined **palette**, the app's face.
 
-It is Nuxt 3 on Cloudflare Workers, forked structurally from
+It is Nuxt 4 on Cloudflare Workers, forked structurally from
 [`do-web`](https://github.com/phareim/do-web). It reuses Reader's login and
 Reader's warm-paper Tufte visual layer, but — unlike do-web/write-web, which
 proxy a Sleeper backend — taste-maker is its **own system of record**: it owns a
@@ -44,7 +44,7 @@ desk re-maps (see `.tufte-sheet`).
 
 ## Architecture
 
-- **Frontend / runtime:** Nuxt 3 (`nitro.preset = 'cloudflare-module'`),
+- **Frontend / runtime:** Nuxt 4 (`nitro.preset = 'cloudflare-module'`),
   deployed as a single Cloudflare Worker. Tailwind + a vendored Tufte preset
   (ET Book fonts, hairline rules, mono labels) for the warm-paper look.
 - **Two D1 bindings coexist in the Worker:**
