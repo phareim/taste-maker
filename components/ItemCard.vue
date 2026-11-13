@@ -161,7 +161,7 @@
       <div class="mt-1 flex flex-wrap items-baseline gap-x-2">
         <MonoLabel v-if="item.creator">{{ item.creator }}</MonoLabel>
         <a
-          v-if="item.source_url"
+          v-if="item.source_url && isLarge"
           :href="item.source_url"
           target="_blank"
           rel="noopener noreferrer"
@@ -169,6 +169,18 @@
           style="font-size: 10px; letter-spacing: 0.1em;"
           @click.stop
         >source&nbsp;&#8599;</a>
+        <!-- Cards and palette rows sit inside a NuxtLink (<a>); a nested <a>
+             is invalid HTML, so the parser splits it and the server-rendered
+             library no longer hydrates. Same look, opened from script. -->
+        <span
+          v-else-if="item.source_url"
+          role="link"
+          tabindex="0"
+          class="font-mono text-mute hover:text-accent-ink cursor-pointer"
+          style="font-size: 10px; letter-spacing: 0.1em;"
+          @click.stop.prevent="openSource"
+          @keydown.enter.stop.prevent="openSource"
+        >source&nbsp;&#8599;</span>
       </div>
       <p v-if="isLarge && item.note" class="mt-3 text-body italic">{{ item.note }}</p>
     </div>
@@ -219,6 +231,10 @@ const quotePaletteClasses = computed(() => ({
 })[quoteTier.value])
 
 const imgFailed = ref(false)
+
+function openSource() {
+  if (props.item.source_url) window.open(props.item.source_url, '_blank', 'noopener,noreferrer')
+}
 
 interface OEmbedData {
   title?: string

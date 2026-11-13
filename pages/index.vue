@@ -95,10 +95,6 @@ const { showError } = useToast()
 const route = useRoute()
 const router = useRouter()
 
-const items = ref<TasteItem[]>([])
-const loading = ref(false)
-const loaded = ref(false)
-
 const kindFilter = ref<KindFilter>('all')
 const statusFilter = ref<StatusFilter>('all')
 const searchInput = ref(typeof route.query.q === 'string' ? route.query.q : '')
@@ -116,30 +112,42 @@ watch(searchInput, (val) => {
   }, 300)
 })
 
-async function fetchItems() {
-  loading.value = true
-  try {
-    items.value = await list({
+// One fetch per filter state. During SSR useAsyncData waits for it and
+// list() goes through useRequestFetch, so the request's cookie reaches
+// /api/items and the page renders with the library in it; the client takes
+// the answer from the payload instead of asking again. `lazy` keeps client
+// navigation to / instant (the "Loading…" line shows meanwhile), and `watch`
+// refetches on every filter/search change.
+const { data, status, error } = useAsyncData(
+  'library-items',
+  () =>
+    list({
       kind: kindFilter.value === 'all' ? undefined : kindFilter.value,
       status: statusFilter.value === 'all' ? undefined : statusFilter.value,
       q: activeQuery.value || undefined,
-    })
-    loaded.value = true
-  } catch {
-    showError('Could not load the library')
-  } finally {
-    loading.value = false
-  }
-}
-
-// Single watcher drives both the fetch and the ?q= URL sync, so the initial
-// load and every subsequent filter/search change go through one path.
-watch(
-  [kindFilter, statusFilter, activeQuery],
-  () => {
-    router.replace({ query: activeQuery.value ? { q: activeQuery.value } : {} })
-    fetchItems()
-  },
-  { immediate: true }
+    }),
+  { lazy: true, watch: [kindFilter, statusFilter, activeQuery] }
 )
+const items = computed<TasteItem[]>(() => data.value ?? [])
+const loading = computed(() => status.value === 'pending')
+const loaded = computed(() => data.value != null)
+
+// The toast lives in the browser only (its timers are client-side). Started
+// after mount, so a server-side failure (the payload's error) raises it once
+// hydration is done rather than changing the DOM being hydrated.
+onMounted(() => {
+  watch(
+    error,
+    (e) => {
+      if (e) showError('Could not load the library')
+    },
+    { immediate: true }
+  )
+})
+
+// Keep ?q= in step with the search. The initial value is read from the URL
+// above, so there is nothing to sync before the first change.
+watch(activeQuery, (q) => {
+  router.replace({ query: q ? { q } : {} })
+})
 </script>
