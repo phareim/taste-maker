@@ -41,7 +41,8 @@ export default defineNuxtRouteMiddleware(async () => {
     await fetchSession()
   }
   if (!user.value) {
-    window.location.href = loginUrl()
-    return abortNavigation()
+    // navigateTo sets location.href and, during hydration, never resolves, so
+    // no error page flashes before the browser leaves (abortNavigation did).
+    return navigateTo(loginUrl(), { external: true })
   }
 })
