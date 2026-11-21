@@ -465,7 +465,8 @@ hand-written responses, and `HTMLRewriter` is a small regex stand-in
 (`tests/helpers/html-rewriter.mjs`), so no test touches a live service. They
 add no dependency: `h3` is the copy Nuxt installs. There is no typecheck and
 no linter (`typescript` is not installed; `typeCheck` is off in
-`nuxt.config.ts`), and the deploy workflow does not run the tests.
+`nuxt.config.ts`). The deploy workflow runs `npm test` before the build, so a
+red suite stops the deploy.
 
 ## Deploy
 
