@@ -161,8 +161,8 @@
       <div class="mt-1 flex flex-wrap items-baseline gap-x-2">
         <MonoLabel v-if="item.creator">{{ item.creator }}</MonoLabel>
         <a
-          v-if="item.source_url && isLarge"
-          :href="item.source_url"
+          v-if="sourceHref && isLarge"
+          :href="sourceHref"
           target="_blank"
           rel="noopener noreferrer"
           class="font-mono text-mute hover:text-accent-ink"
@@ -173,7 +173,7 @@
              is invalid HTML, so the parser splits it and the server-rendered
              library no longer hydrates. Same look, opened from script. -->
         <span
-          v-else-if="item.source_url"
+          v-else-if="sourceHref"
           role="link"
           tabindex="0"
           class="font-mono text-mute hover:text-accent-ink cursor-pointer"
@@ -181,6 +181,12 @@
           @click.stop.prevent="openSource"
           @keydown.enter.stop.prevent="openSource"
         >source&nbsp;&#8599;</span>
+        <!-- Not http(s): shown, never linked (a javascript: URL would run). -->
+        <span
+          v-else-if="item.source_url && isLarge"
+          class="font-mono text-mute break-all"
+          style="font-size: 10px; letter-spacing: 0.1em;"
+        >{{ item.source_url }}</span>
       </div>
       <p v-if="isLarge && item.note" class="mt-3 text-body italic">{{ item.note }}</p>
     </div>
@@ -189,6 +195,7 @@
 
 <script setup lang="ts">
 import type { TasteItem } from '~/types/taste'
+import { linkableUrl } from '~/utils/linkableUrl'
 
 const props = withDefaults(
   defineProps<{
@@ -232,8 +239,10 @@ const quotePaletteClasses = computed(() => ({
 
 const imgFailed = ref(false)
 
+const sourceHref = computed(() => linkableUrl(props.item.source_url))
+
 function openSource() {
-  if (props.item.source_url) window.open(props.item.source_url, '_blank', 'noopener,noreferrer')
+  if (sourceHref.value) window.open(sourceHref.value, '_blank', 'noopener,noreferrer')
 }
 
 interface OEmbedData {

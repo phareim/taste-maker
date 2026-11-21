@@ -14,6 +14,7 @@ export const EXTENSION_KEY = 'extension-key-for-tests'
 export const IOS_KEY = 'ios-key-for-tests'
 
 const API_DIR = path.join(ROOT, 'server', 'api')
+const MIDDLEWARE_DIR = path.join(ROOT, 'server', 'middleware')
 
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -81,6 +82,12 @@ export async function createTestApp(envOverrides = {}) {
   app.use(defineEventHandler((event) => {
     event.context.cloudflare = { env }
   }))
+  // Nitro runs server/middleware/* on every request, in file-name order,
+  // before the route handler.
+  for (const name of readdirSync(MIDDLEWARE_DIR).filter((f) => f.endsWith('.ts')).sort()) {
+    const mod = await import(pathToFileURL(path.join(MIDDLEWARE_DIR, name)).href)
+    app.use(mod.default)
+  }
   const router = createRouter()
   for (const { method, route, file } of listRoutes()) {
     const mod = await import(pathToFileURL(file).href)
@@ -107,6 +114,8 @@ export async function createTestApp(envOverrides = {}) {
    */
   async function request(method, url, { cookie, bearer, json, body, headers = {}, origin = 'https://taste.phareim.no' } = {}) {
     const h = new Headers(headers)
+    // Every real HTTP request carries Host; a bare web Request does not.
+    if (!h.has('host')) h.set('host', new URL(origin).host)
     if (cookie) h.set('cookie', cookie)
     if (bearer) h.set('authorization', `Bearer ${bearer}`)
     let payload = body

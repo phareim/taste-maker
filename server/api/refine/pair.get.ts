@@ -26,25 +26,25 @@ export default defineEventHandler(async (event) => {
     kind = row.kind
   }
 
-  // Exposure weighting (all modes) — least-seen items surface first so
-  // repeat pairings don't dominate a small pool.
-  let results: any[]
-  if (mix) {
-    const res = await db
-      .prepare(
-        `SELECT ${ITEM_COLUMNS} FROM taste_item WHERE status='captured' ORDER BY (wins + losses) ASC, RANDOM() LIMIT 2`
-      )
-      .all()
-    results = res.results
-  } else {
-    const res = await db
-      .prepare(
-        `SELECT ${ITEM_COLUMNS} FROM taste_item WHERE status='captured' AND kind=? ORDER BY (wins + losses) ASC, RANDOM() LIMIT 2`
-      )
-      .bind(kind)
-      .all()
-    results = res.results
-  }
+  // Exposure weighting (all modes) — the least-seen item surfaces first so
+  // repeat pairings don't dominate a small pool. Its opponent is drawn at
+  // random from the rest: ordering both by exposure served the same two
+  // least-seen items on every skip, since a skip changes no score.
+  const kindClause = mix ? '' : ' AND kind=?'
+  const kindParams = mix ? [] : [kind]
+  const first = await db
+    .prepare(
+      `SELECT ${ITEM_COLUMNS} FROM taste_item WHERE status='captured'${kindClause} ORDER BY (wins + losses) ASC, RANDOM() LIMIT 1`
+    )
+    .bind(...kindParams)
+    .first()
+  const second = first
+    ? await db
+        .prepare(`SELECT ${ITEM_COLUMNS} FROM taste_item WHERE status='captured'${kindClause} AND id != ? ORDER BY RANDOM() LIMIT 1`)
+        .bind(...kindParams, (first as any).id)
+        .first()
+    : null
+  const results: any[] = [first, second].filter(Boolean)
 
   if (results.length < 2) {
     return { a: null, b: null, mix }

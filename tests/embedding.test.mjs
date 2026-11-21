@@ -82,6 +82,46 @@ test('a write still succeeds, without a vector, when NIM is down', async (t) => 
   }
 })
 
+test('POST /api/items/reembed fills missing vectors, 25 per call, oldest first, and answers { embedded, left }', async (t) => {
+  const app = await createTestApp({ NVIDIA_API_KEY: 'nim-key' })
+  const cookie = app.signIn()
+  const kept = app.seedItem({ body: 'already has one', embedding: [9, 9] })
+  const first = app.seedItem({ title: 'Rumours', creator: 'Fleetwood Mac', body: 'Dreams', note: 'that bassline' })
+  for (let i = 0; i < 29; i++) app.seedItem()
+  const fetchMock = t.mock.method(globalThis, 'fetch', async () => nimResponse([0.25, 0.75]))
+
+  const res = await app.request('POST', '/api/items/reembed', { cookie })
+  assert.equal(res.status, 200)
+  assert.deepEqual(res.body, { embedded: 25, left: 5 })
+  assert.equal(fetchMock.mock.callCount(), 25)
+  assert.deepEqual(JSON.parse(fetchMock.mock.calls[0].arguments[1].body).input, ['Rumours — Fleetwood Mac — Dreams — that bassline'])
+  assert.equal(app.item(first).embedding, '[0.25,0.75]')
+  assert.equal(app.item(kept).embedding, '[9,9]') // an existing vector is never touched
+
+  assert.deepEqual((await app.request('POST', '/api/items/reembed', { cookie })).body, { embedded: 5, left: 0 })
+  assert.deepEqual((await app.request('POST', '/api/items/reembed', { cookie })).body, { embedded: 0, left: 0 })
+
+  // The Related panel now has neighbours for an item captured while NIM was down.
+  const related = await app.request('GET', `/api/items/${first}/related`, { cookie })
+  assert.equal(related.body.length, 5)
+})
+
+test('POST /api/items/reembed stops at the first NIM failure and leaves the rest for later', async (t) => {
+  t.mock.method(console, 'error', () => {})
+  const app = await createTestApp({ NVIDIA_API_KEY: 'nim-key' })
+  for (let i = 0; i < 4; i++) app.seedItem()
+  let calls = 0
+  t.mock.method(globalThis, 'fetch', async () => (++calls === 1 ? nimResponse([1, 0]) : new Response('down', { status: 503 })))
+  const res = await app.request('POST', '/api/items/reembed', { cookie: app.signIn() })
+  assert.equal(res.status, 200)
+  assert.deepEqual(res.body, { embedded: 1, left: 3 })
+  assert.equal(calls, 2)
+
+  const noKey = await createTestApp()
+  noKey.seedItem()
+  assert.deepEqual((await noKey.request('POST', '/api/items/reembed', { cookie: noKey.signIn() })).body, { embedded: 0, left: 1 })
+})
+
 test('cosine: 1 for the same direction, 0 for orthogonal and for a zero vector', () => {
   assert.equal(cosine([1, 2, 3], [2, 4, 6]), 1)
   assert.equal(cosine([1, 0], [0, 1]), 0)

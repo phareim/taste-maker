@@ -40,6 +40,7 @@ test('the route table is the one the clients call', () => {
       'get /api/items/:id',
       'patch /api/items/:id',
       'get /api/items/:id/related',
+      'post /api/items/reembed',
       'get /api/refine/pair',
       'post /api/refine/pick',
     ]

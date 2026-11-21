@@ -44,6 +44,32 @@ desk re-maps (see `.tufte-sheet`).
 2. **An embedding-assisted *related* panel** plus a **refine-to-canon conviction
    ritual** with a visible end-state (the palette). Neither exists in SFL.
 
+Taste becomes redundant if SFL gains canon and the refine ritual, or if the
+ritual goes unused (no item was written between 2026-11-12 and 2026-11-21).
+
+## Where Taste sits
+
+Nothing moves an item from SFL into Taste.
+
+**In** — who calls this app:
+
+| Caller | What it uses | Auth |
+|---|---|---|
+| Reader | `POST /api/ingest/highlight` and `DELETE /api/ingest/highlight/[id]`: mirrors each highlight in as a `quote`, and undoes it | Bearer `TASTE_INGEST_KEY` |
+| The workbook (thoughts.phareim.no) | `GET /api/items` (every status, archived included) and the pictures (`/api/images/[key]`), over a service binding | the visitor's Reader session cookie |
+| Chrome extension (`extension/`) | `POST /api/ingest/capture` | Bearer `TASTE_EXTENSION_KEY` |
+| iOS Share Extension (`ios/`) | `POST /api/ingest/capture`, `/capture-image`, `/enrich` | Bearer `TASTE_IOS_KEY` |
+| The stats collector | never this app: it reads only D1 usage numbers through Cloudflare's API | — |
+
+**Out** — what this app calls:
+
+| Service | Why |
+|---|---|
+| NVIDIA NIM (`integrate.api.nvidia.com`) | embeddings at write time and from `POST /api/items/reembed` |
+| Public pages, YouTube/Vimeo oEmbed | `POST /api/ingest/enrich` fetches the shared page (public http(s) hosts only) |
+
+Reader's D1 (`DB`) is read for session validation only; see Auth.
+
 ## Architecture
 
 - **Frontend / runtime:** Nuxt 4 (`nitro.preset = 'cloudflare-module'`),
@@ -62,7 +88,11 @@ desk re-maps (see `.tufte-sheet`).
   server-side check itself failed. The session-gated API routes call
   `requireAllowedUser(event)`, which validates the session against `DB` and
   checks the email against `NUXT_ALLOWED_USER_EMAILS` (401 no session, 403 not
-  allowlisted). The ingest routes take Bearer keys instead, and
+  allowlisted). Writes (`POST`/`PATCH`/`PUT`/`DELETE`) to those routes that
+  carry an `Origin` header naming another host are refused with 403
+  (`server/middleware/origin.ts`), since the domain-wide cookie rides along on
+  a cross-site form post; requests without `Origin` and everything under
+  `/api/ingest/` are left alone. The ingest routes take Bearer keys instead, and
   `GET /api/images/[key]` is public (see Ingest). The `session_token` cookie is
   scoped to `.phareim.no`, so **login only works on the custom domain**, not on
   `*.workers.dev`.
@@ -72,8 +102,11 @@ desk re-maps (see `.tufte-sheet`).
   vector as JSON text inline on the item row. The call is wrapped in a 10s
   timeout and try/catch: on **any** failure (missing `NVIDIA_API_KEY`, non-2xx,
   timeout, unexpected shape) it saves the item with `embedding = NULL` and never
-  fails the write. The related panel is item-to-item cosine over stored vectors;
-  if the target has no embedding it returns `[]` and the UI hides the panel.
+  fails the write. `POST /api/items/reembed` backfills those: it embeds up to
+  25 rows with `embedding IS NULL` per call, oldest first, stops at the first
+  NIM failure, and answers `{ embedded, left }`. The related panel is
+  item-to-item cosine over stored vectors; if the target has no embedding it
+  returns `[]` and the UI hides the panel.
 
 ### Data model (owned `taste-maker` D1)
 
@@ -112,7 +145,8 @@ is a UI concern), one `connection` edge table. Full DDL in
 API (all gated by `requireAllowedUser`): `GET/POST /api/items`,
 `GET/PATCH/DELETE /api/items/[id]`, `GET /api/items/[id]/related`,
 `GET/POST /api/connections`, `DELETE /api/connections/[id]`,
-`GET /api/refine/pair`, `POST /api/refine/pick`. `GET /api/auth/session` is
+`GET /api/refine/pair`, `POST /api/refine/pick`, `POST /api/items/reembed`.
+`GET /api/auth/session` is
 the one exception: it answers `{ user }` for whichever Reader session the
 cookie holds (`{ user: null }` for none), with no allowlist check — the login
 gate reads it, and it returns no library data.
@@ -236,8 +270,8 @@ Never hand-edit any of them; xcodegen overwrites them on every run.
 
 ### Build & deploy
 
-Two paths, neither needing the Xcode GUI. Same rig as `sfl` and `sleeper-chat`
-— see `docs/superpowers/specs/2026-07-31-xcode-cloud-testflight-design.md`.
+Two paths, neither needing the Xcode GUI. Same rig as `sfl` and the iOS app in
+the `~/chat` repo — see `docs/superpowers/specs/2026-07-31-xcode-cloud-testflight-design.md`.
 
 **1. Direct to a plugged-in device (~1 min)**
 
@@ -280,11 +314,11 @@ nothing in `project.yml` is bumped by hand. App Store Connect rejects a build
 number it has already seen: to upload the same commit twice, commit again or
 pass `BUILD_NUMBER`.
 
-> Beware: the `.p8` in `~/Downloads/2026` is sleeper-chat's **APNs** key, not
+> Beware: the `.p8` in `~/Downloads/2026` is the `~/chat` iOS app's **APNs** key, not
 > an ASC key. It looks identical and will always 401 against the ASC API.
 
-> Assume the push auto-trigger does **not** work. It has never worked for
-> `sleeper-chat` (Xcode Cloud is never notified of pushes; the GitHub App,
+> Assume the push auto-trigger does **not** work. It has never worked for the
+> `~/chat` iOS app (Xcode Cloud is never notified of pushes; the GitHub App,
 > its permissions and the path rule were all ruled out), so press Start Build.
 
 TestFlight builds expire after **90 days**.
@@ -382,10 +416,11 @@ against a *known* site name, host, or resolved creator, so real titles like
 ## The refine ritual
 
 The heart of the app. `/refine` serves two `captured` items — **same kind by
-default** (cross-kind is a deliberate "wildcard" mode, not an accident) — using
-exposure weighting (`ORDER BY (wins + losses) ASC, RANDOM()`) so least-seen items
-surface first and repeat pairings don't dominate a small pool. You pick A, pick
-B, or skip (`←` / `→` / `space`).
+default** (cross-kind is a deliberate "wildcard" mode, not an accident). The
+first is the least-seen (`ORDER BY (wins + losses) ASC, RANDOM()`), so repeat
+pairings don't dominate a small pool; its opponent is drawn at random from the
+rest, so a skip moves on to a new pair. You pick A, pick B, or skip (`←` / `→` /
+`space`).
 
 Each pick increments the winner's `wins` and the loser's `losses`. Two named
 thresholds (both first guesses, to be revisited with real usage — see
@@ -413,7 +448,8 @@ items never reappear in refine.
 
 Everything targets `--remote` D1; there is deliberately no `--local` seed story
 in v1. Without `NVIDIA_API_KEY`, writes still succeed with `embedding = NULL`
-(the intended graceful path).
+(the intended graceful path). For local work the key is in
+`~/.config/sleeper/secrets.zsh`, never `~/.zshrc`.
 
 ```bash
 npm install
@@ -442,7 +478,7 @@ no linter (`typescript` is not installed; `typeCheck` is off in
    ```
 2. **Set the secrets:**
    ```bash
-   npx wrangler secret put NVIDIA_API_KEY   # paste $NVIDIA_API_KEY (in ~/.zshrc on Sleeper)
+   npx wrangler secret put NVIDIA_API_KEY   # paste $NVIDIA_API_KEY (from ~/.config/sleeper/secrets.zsh)
    npx wrangler secret put TASTE_INGEST_KEY      # Reader's highlight mirror
    npx wrangler secret put TASTE_EXTENSION_KEY   # Chrome extension
    npx wrangler secret put TASTE_IOS_KEY         # iOS Share Extension

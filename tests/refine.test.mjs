@@ -19,16 +19,34 @@ test('GET /api/refine/pair: same kind by default, least-seen first, captured onl
   app.seedItem({ kind: 'art' }) // a lone kind is never paired by default
   const fresh1 = app.seedItem({ kind: 'quote' })
   const fresh2 = app.seedItem({ kind: 'quote' })
-  app.seedItem({ kind: 'quote', wins: 2, losses: 1 }) // seen three times: waits
+  const seen = app.seedItem({ kind: 'quote', wins: 2, losses: 1 })
   app.seedItem({ kind: 'quote', status: 'canon' })
   app.seedItem({ kind: 'quote', status: 'archived' })
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     const res = await app.request('GET', '/api/refine/pair', { cookie })
-    assert.deepEqual([res.body.a.id, res.body.b.id].sort(), [fresh1, fresh2].sort())
+    assert.ok([fresh1, fresh2].includes(res.body.a.id)) // the least-seen leads
+    assert.ok([fresh1, fresh2, seen].includes(res.body.b.id)) // captured quotes only
+    assert.notEqual(res.body.a.id, res.body.b.id)
     assert.equal(res.body.mix, false)
     assert.ok(!('embedding' in res.body.a))
   }
+})
+
+test('GET /api/refine/pair: a skip moves on instead of serving the same pair again', async () => {
+  const app = await createTestApp()
+  const cookie = app.signIn()
+  app.seedItem({ kind: 'quote' })
+  app.seedItem({ kind: 'quote' })
+  for (let i = 0; i < 6; i++) app.seedItem({ kind: 'quote', wins: 1, losses: 1 })
+  const pairs = new Set()
+  for (let i = 0; i < 30; i++) {
+    const { a, b } = (await app.request('GET', '/api/refine/pair', { cookie })).body // what a skip asks for: no parameters
+    pairs.add([a.id, b.id].sort().join('+'))
+  }
+  // Was 1: both least-seen items, every time. 30 draws of 7 opponents for
+  // 2 leaders leave fewer than 3 distinct pairs with probability ~1e-17.
+  assert.ok(pairs.size >= 3, `${pairs.size} distinct pairs`)
 })
 
 test('GET /api/refine/pair: ?kind pins the kind, ?mix=true pairs across kinds', async () => {
@@ -48,7 +66,8 @@ test('GET /api/refine/pair: ?kind pins the kind, ?mix=true pairs across kinds', 
 
   const mixed = await app.request('GET', '/api/refine/pair?mix=true', { cookie })
   assert.equal(mixed.body.mix, true)
-  assert.deepEqual([mixed.body.a.id, mixed.body.b.id].sort(), [art, song].sort())
+  assert.ok([art, song].includes(mixed.body.a.id)) // a least-seen item of any kind leads
+  assert.notEqual(mixed.body.a.id, mixed.body.b.id)
 })
 
 test('POST /api/refine/pick records one win and one loss', async () => {
