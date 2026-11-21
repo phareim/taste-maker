@@ -1,4 +1,4 @@
-import { orderedPair } from '~/server/utils/tasteDb'
+import { getItem, orderedPair } from '~/server/utils/tasteDb'
 
 export default defineEventHandler(async (event) => {
   await requireAllowedUser(event)
@@ -11,6 +11,12 @@ export default defineEventHandler(async (event) => {
 
   if (!from_id || !to_id || from_id === to_id) {
     throw createError({ statusCode: 400, statusMessage: 'from_id and to_id are required and must differ' })
+  }
+
+  // Without this an unknown id reaches the INSERT and fails its foreign key,
+  // which surfaces as a 500.
+  if (!(await getItem(db, from_id)) || !(await getItem(db, to_id))) {
+    throw createError({ statusCode: 404, statusMessage: 'Item not found' })
   }
 
   const [a, b] = orderedPair(from_id, to_id)

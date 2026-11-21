@@ -32,9 +32,14 @@ const HTML_ENTITIES: Record<string, string> = {
 export function decodeEntities(s: string): string {
   return s
     .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (m) => HTML_ENTITIES[m] ?? m)
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (m, d) => fromCodePoint(Number(d), m))
+    .replace(/&#x([0-9a-f]+);/gi, (m, h) => fromCodePoint(parseInt(h, 16), m))
 }
+
+// String.fromCodePoint throws past U+10FFFF. A reference like `&#9999999999;`
+// is left as written rather than letting one bad character cost the caller
+// every field.
+const fromCodePoint = (code: number, raw: string) => (code <= 0x10ffff ? String.fromCodePoint(code) : raw)
 
 export const metaOf = (m: PageMetadata, ...keys: string[]): string | null => {
   for (const k of keys) {

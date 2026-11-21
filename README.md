@@ -37,8 +37,10 @@ desk re-maps (see `.tufte-sheet`).
 ## Why this is not "SFL with a skin"
 
 1. **Heterogeneous media rendered as themselves.** Quotes are pull-quotes,
-   art is an image, music carries an oEmbed thumbnail, references are typed
-   index-card rows. No two kinds share a card treatment.
+   art is an image, music carries an oEmbed thumbnail and, for Spotify and
+   YouTube links, the live player, clothing is a portrait product shot with
+   its brand as a tag, references are typed index-card rows. No two kinds
+   share a card treatment.
 2. **An embedding-assisted *related* panel** plus a **refine-to-canon conviction
    ritual** with a visible end-state (the palette). Neither exists in SFL.
 
@@ -52,12 +54,17 @@ desk re-maps (see `.tufte-sheet`).
     the `session_token` cookie against Reader's `session`/`User` tables.
   - `TASTE_DB` → `taste-maker` (this app's DB). **Read-write.** Owns the
     `taste_item` and `connection` tables (see `migrations/0001_init.sql`).
-- **Auth:** copied byte-for-byte from do-web. A client-only global middleware
-  bounces unauthenticated visits to `reader.phareim.no/login?redirect=<back>`;
-  every server route calls `requireAllowedUser(event)`, which validates the
-  session against `DB` and checks the email against `NUXT_ALLOWED_USER_EMAILS`
-  (401 no session, 403 not allowlisted). The `session_token` cookie is scoped to
-  `.phareim.no`, so **login only works on the custom domain**, not on
+- **Auth:** vendored from do-web (`middleware/auth.global.ts`,
+  `composables/useAuth.ts`, `server/utils/readerSession.ts`). A global
+  middleware bounces visits without a Reader session to
+  `reader.phareim.no/login?redirect=<back>`: on the server as a 302 before the
+  page renders, in the browser on client-side navigation and whenever the
+  server-side check itself failed. The session-gated API routes call
+  `requireAllowedUser(event)`, which validates the session against `DB` and
+  checks the email against `NUXT_ALLOWED_USER_EMAILS` (401 no session, 403 not
+  allowlisted). The ingest routes take Bearer keys instead, and
+  `GET /api/images/[key]` is public (see Ingest). The `session_token` cookie is
+  scoped to `.phareim.no`, so **login only works on the custom domain**, not on
   `*.workers.dev`.
 - **Embeddings (NVIDIA NIM, graceful degradation):** at item write time the app
   builds `embedText = [title, creator, body, note].join(' — ')` and POSTs it to
@@ -72,16 +79,21 @@ desk re-maps (see `.tufte-sheet`).
 
 Two tables — one `taste_item` shape for all five kinds (kind-specific rendering
 is a UI concern), one `connection` edge table. Full DDL in
-`migrations/0001_init.sql`; the `kind` CHECK is widened in
+`migrations/0001_init.sql`; `external_ref` is added in
+`migrations/0002_external_ref.sql` and the `kind` CHECK is widened in
 `migrations/0003_clothing_kind.sql`.
 
 - `taste_item`: `id, kind, title, body, source_url, creator, note, image_url,
-  status, wins, losses, promoted_via, embedding, created_at, updated_at`.
+  status, wins, losses, promoted_via, embedding, created_at, updated_at,
+  external_ref`.
   - `kind ∈ {quote, reference, music, art, clothing}`
   - `status ∈ {captured, canon, archived}` (default `captured`)
   - `promoted_via ∈ {refine, manual}`, NULL until canon
   - `embedding` is JSON text (or NULL); **never returned to the client** — routes
     select an explicit `ITEM_COLUMNS` list that excludes it.
+  - `external_ref` is the idempotency key for items mirrored from outside
+    (`reader-highlight:<id>`), NULL for everything captured here; unique when
+    set, and never returned to the client either.
 - `connection`: undirected edge (`from_id`, `to_id`, `note`). Written in
   canonical order (smaller id first) so a UNIQUE index dedupes A↔B regardless of
   direction. Item delete **explicitly** removes edges first —
@@ -92,17 +104,20 @@ is a UI concern), one `connection` edge table. Full DDL in
 | Path | Purpose |
 |---|---|
 | `/` | Library: browse all, filter by kind + status, debounced search |
-| `/capture` | Keyboard-friendly add form (`Cmd/Ctrl+Enter` submits) |
-| `/item/[id]` | Full item + related panel + connections + connect + promote/demote/delete |
+| `/capture` | Add form: paste a link and the server suggests kind, title, creator and image, with a live preview of the card (`Cmd/Ctrl+Enter` submits) |
+| `/item/[id]` | Full item + related panel + connections + connect + promote/demote/un-archive/delete |
 | `/refine` | A-vs-B compare ritual |
 | `/palette` | Canon view grouped by kind — the app's face |
 
 API (all gated by `requireAllowedUser`): `GET/POST /api/items`,
 `GET/PATCH/DELETE /api/items/[id]`, `GET /api/items/[id]/related`,
 `GET/POST /api/connections`, `DELETE /api/connections/[id]`,
-`GET /api/refine/pair`, `POST /api/refine/pick`, `GET /api/auth/session`.
+`GET /api/refine/pair`, `POST /api/refine/pick`. `GET /api/auth/session` is
+the one exception: it answers `{ user }` for whichever Reader session the
+cookie holds (`{ user: null }` for none), with no allowlist check — the login
+gate reads it, and it returns no library data.
 
-### Ingest (server-to-server, Bearer `TASTE_INGEST_KEY`)
+### Ingest (Bearer keys)
 
 Reader mirrors every highlight here as a `quote` item — the one-way funnel:
 encounter in Reader, refine in taste-maker.
@@ -139,19 +154,25 @@ encounter in Reader, refine in taste-maker.
 - `POST /api/ingest/enrich` — `{url?, shared_text?, has_image?, page?}` →
   `{kind, kind_confidence, kind_reason, title, creator, creator_source,
   image_url, source_url}`. Suggests a kind and a creator for something the iOS
-  Share Extension is about to capture; see "Capture enrichment" below. Auth
-  `Bearer <TASTE_IOS_KEY>`; no CORS. **Never fails loudly** — every error path
-  returns 200 with null fields, because the client already has its own local
-  guess and enrichment must never block a capture.
+  Share Extension or the web capture form is about to capture; see "Capture
+  enrichment" below. Two callers, two gates: a request with an `Authorization`
+  header must carry `Bearer <TASTE_IOS_KEY>`; one without must hold an allowed
+  Reader session (the `/capture` form, same-origin). No CORS. **Never fails
+  loudly** — once the request is authenticated and its JSON parsed (a
+  malformed JSON body is a 400), every failure returns 200 with null fields:
+  an unreachable page, broken markup, a rule that throws. The client already
+  has its own local guess, and enrichment must never block a capture.
 
 Auth for `/api/ingest/highlight*`: `Authorization: Bearer <TASTE_INGEST_KEY>`
 (Worker secret; host-side copy in `~/.config/taste/env`, shared with Reader
 as `NUXT_TASTE_INGEST_KEY`). Auth for `/api/ingest/capture`:
 `Authorization: Bearer <TASTE_EXTENSION_KEY>` (separate Worker secret, held
-only by the Chrome extension). Auth for `/api/ingest/capture-image` and
-`/api/ingest/enrich`: `Authorization: Bearer <TASTE_IOS_KEY>` (third Worker
-secret, held only in the iOS app's Keychain). All three: 503 when the relevant
-secret is unset, 401 on mismatch. Reader's side of the highlight pipe
+only by the Chrome extension) or `Bearer <TASTE_IOS_KEY>` (third Worker
+secret, held only in the iOS app's Keychain). Auth for
+`/api/ingest/capture-image`: `Bearer <TASTE_IOS_KEY>` only; for
+`/api/ingest/enrich`: that key or an allowed Reader session, as above. All
+three keys: 503 when the relevant secret is unset (for `/api/ingest/capture`,
+when neither of its two is set), 401 on mismatch. Reader's side of the highlight pipe
 (mirror-on-create, undo-on-delete, backfill script) lives in the reader repo.
 
 ## Chrome extension (`extension/`)
@@ -186,8 +207,8 @@ Three targets, generated by `xcodegen` from `ios/project.yml`:
   its own; the extension deep-links here via `tastecapture://settings`.
 - **TasteCaptureShare** (`no.phareim.tastecapture.share`) — the capture form.
 - **TasteCaptureKit** — shared Swift package: `CaptureClient`, `EnrichClient`,
-  `LocalRouter`, `KeychainStore`. The only part with automated tests
-  (`cd ios/TasteCaptureKit && swift test`).
+  `EnrichMerge`, `LocalRouter`, `SharedText`, `KeychainStore`. The only part of
+  the iOS code with automated tests (`cd ios/TasteCaptureKit && swift test`).
 
 The two binaries are separate processes; they share the key through one
 keychain-access-group and an App Group (`group.no.phareim.tastecapture`).
@@ -233,10 +254,10 @@ expires, not 7 days. List devices with `xcrun devicectl list devices`.
 
 Xcode Cloud → TestFlight internal testing. Everything mechanical is done and
 verified — bundle IDs registered, and a real signed App Store `.ipa` exports
-cleanly. **Two account-side steps remain**, both GUI-only: create the App Store
-Connect *app record*, then create the Xcode Cloud workflow. See the spec above.
-Once done: push to `main`, then App Store Connect → Xcode Cloud → Builds →
-**Start Build**.
+cleanly. **One account-side step remains**, GUI-only: create the Xcode Cloud
+workflow (the App Store Connect *app record* exists, see path 3). See the spec
+above. Once done: push to `main`, then App Store Connect → Xcode Cloud →
+Builds → **Start Build**.
 
 **3. TestFlight without Xcode Cloud (~5 min) — this is the working path**
 
@@ -244,7 +265,8 @@ Once done: push to `main`, then App Store Connect → Xcode Cloud → Builds →
 source ~/.config/taste/asc-env && ios/scripts/testflight.sh
 ```
 
-Archives, exports, validates and uploads. Credentials are already set up:
+Archives, exports, validates and uploads, then waits for Apple to process the
+build and attaches it to the tester group. Credentials are already set up:
 the API key is in `~/.appstoreconnect/private_keys/` (altool finds it there)
 and the key/issuer IDs are in `~/.config/taste/asc-env`, both `600`.
 
@@ -253,8 +275,10 @@ collects beautiful objects and arranges them to its own taste, which is the
 app. The home-screen name stays `taste-maker`, matching the T icon. Build 1.0
 (1) shipped 2026-07-31 to the `Internal` group.
 
-Bump `CFBundleVersion` in `project.yml` before each upload — App Store Connect
-rejects a build number it has already seen.
+The build number is the git commit count (`BUILD_NUMBER=n` forces another), so
+nothing in `project.yml` is bumped by hand. App Store Connect rejects a build
+number it has already seen: to upload the same commit twice, commit again or
+pass `BUILD_NUMBER`.
 
 > Beware: the `.p8` in `~/Downloads/2026` is sleeper-chat's **APNs** key, not
 > an ASC key. It looks identical and will always 401 against the ASC API.
@@ -291,7 +315,9 @@ TestFlight builds expire after **90 days**.
 Powers `POST /api/ingest/enrich`: given a shared URL, work out **which kind**
 the item is and **who made it**, so a capture is ideally zero typing.
 
-Four files, all pure functions except the route itself:
+Four files of deterministic rules. The only I/O outside the route itself is
+`metadataFromResponse` (reads the page the route fetched) and `oembedCreator`
+(one oEmbed lookup):
 
 - `domains.ts` — the kind-routing table. `open.spotify.com` → `music`,
   `cos.com` → `clothing`, `artsy.net` → `art`, and so on. **This is the file
@@ -324,7 +350,10 @@ Four files, all pure functions except the route itself:
      only when that segment isn't the site's own name**, or every article would
      be attributed to its masthead
   6. the Share Sheet's own text ("Dreams by Fleetwood Mac")
-  7. nothing — leave it blank
+  7. for YouTube and Vimeo links, the oEmbed `author_name` — the one
+     network-backed rung, tried by the route only when the ladder above came
+     up empty
+  8. nothing — leave it blank
 
   There is deliberately **no model in this path**. It is all deterministic
   rules, and every result is normalized (entities decoded, `®`/`™` and legal
@@ -388,21 +417,38 @@ in v1. Without `NVIDIA_API_KEY`, writes still succeed with `embedding = NULL`
 
 ```bash
 npm install
+npm test           # Node's built-in test runner; needs Node 22.18 or newer
 npm run build      # produces .output/server/index.mjs
 ```
 
+The tests (`tests/`) run the real route handlers on an h3 app, with Node's
+built-in SQLite standing in for both D1 databases (the owned one is built from
+`migrations/`, Reader's from the two tables `readerSession.ts` reads) and a
+`Map` for the R2 bucket. NIM, fetched pages and oEmbed are stubbed with
+hand-written responses, and `HTMLRewriter` is a small regex stand-in
+(`tests/helpers/html-rewriter.mjs`), so no test touches a live service. They
+add no dependency: `h3` is the copy Nuxt installs. There is no typecheck and
+no linter (`typescript` is not installed; `typeCheck` is off in
+`nuxt.config.ts`), and the deploy workflow does not run the tests.
+
 ## Deploy
 
-1. **Create the owned D1 and apply the migration** (once):
+1. **Create the owned D1 and the image bucket, and apply the migrations** (once):
    ```bash
    npx wrangler d1 create taste-maker
    # copy the returned database_id into wrangler.toml's TASTE_DB block
    npx wrangler d1 migrations apply taste-maker --remote
+   npx wrangler r2 bucket create taste-maker-images
    ```
-2. **Set the NIM secret:**
+2. **Set the secrets:**
    ```bash
    npx wrangler secret put NVIDIA_API_KEY   # paste $NVIDIA_API_KEY (in ~/.zshrc on Sleeper)
+   npx wrangler secret put TASTE_INGEST_KEY      # Reader's highlight mirror
+   npx wrangler secret put TASTE_EXTENSION_KEY   # Chrome extension
+   npx wrangler secret put TASTE_IOS_KEY         # iOS Share Extension
    ```
+   Each ingest route answers 503 until its key is set; without
+   `NVIDIA_API_KEY` items are saved without an embedding.
    `NUXT_ALLOWED_USER_EMAILS` is a plain `[vars]` entry, not a secret.
 3. **Ship.** Push to `main` — GitHub Actions builds and runs `wrangler deploy`
    with the CI `CLOUDFLARE_API_TOKEN` (account `bb0db86d8a64a70337bb44f43d00e4e5`),
@@ -416,20 +462,23 @@ npm run build      # produces .output/server/index.mjs
 > to `.phareim.no`, so login only works once `taste.phareim.no` is bound. If the
 > deploy token can't edit DNS, bind the domain via the Cloudflare dashboard
 > (Workers & Pages → taste-maker → Settings → Domains & Routes → Add custom
-> domain) — the same gotcha as wiki-reader and the phareim.md apex.
+> domain).
 
 ## V1 cut line
 
-Shipped, and nothing beyond: auth fork, capture form, library browse/filter/
+V1 was this and nothing beyond: auth fork, capture form, library browse/filter/
 search, item view with related panel + explicit connections, refine ritual with
 canon promotion, palette view, Reader-styled and mobile-friendly, deployed behind
-Reader login at `taste.phareim.no`.
+Reader login at `taste.phareim.no`. On top of it now: the Reader highlight
+mirror, the `clothing` kind, the Chrome extension, the iOS Share Extension with
+capture enrichment and photo upload, and the live music players.
 
 ## Parked for v2 (explicitly out of v1)
 
 Two entries left this list with the iOS Share Extension: **URL auto-extraction**
-(now `server/utils/enrich/`, though only on the ingest path — pasting a URL into
-`/capture` still scrapes nothing) and **R2 / file uploads** (now
+(now `server/utils/enrich/`, used by the iOS Share Extension and by `/capture`,
+where pasting a link fills the form; the Chrome extension does not call it) and
+**R2 / file uploads** (now
 `/api/ingest/capture-image`, though only for iOS photo shares — the web form
 still hotlinks image URLs only).
 

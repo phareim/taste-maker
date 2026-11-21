@@ -24,8 +24,9 @@ export default defineEventHandler(async (event) => {
     // All-anonymous `?` placeholders only — never mix `?` and `?N` binding
     // styles in the same statement (SQLite mis-binds). Push the same value
     // once per `?` in clause order.
-    clauses.push('(title LIKE ? OR body LIKE ? OR creator LIKE ? OR note LIKE ?)')
-    const like = `%${q}%`
+    // `%`, `_` and a backslash typed into the search are text, not LIKE syntax.
+    clauses.push("(title LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\' OR creator LIKE ? ESCAPE '\\' OR note LIKE ? ESCAPE '\\')")
+    const like = `%${q.replace(/[\\%_]/g, '\\$&')}%`
     params.push(like, like, like, like)
   }
 

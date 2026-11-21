@@ -7,6 +7,7 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --import ./tests/helpers/setup.mjs --test \"tests/*.test.mjs\"",
     "postinstall": "nuxt prepare"
   },
   "repository": {

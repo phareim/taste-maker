@@ -1,4 +1,4 @@
-import { ITEM_COLUMNS } from '~/server/utils/tasteDb'
+import { ITEM_COLUMNS, getItem } from '~/server/utils/tasteDb'
 import { PROMOTE_THRESHOLD, ARCHIVE_THRESHOLD } from '~/server/utils/refine'
 
 export default defineEventHandler(async (event) => {
@@ -10,6 +10,15 @@ export default defineEventHandler(async (event) => {
   const loser_id = typeof body?.loser_id === 'string' ? body.loser_id : ''
   if (!winner_id || !loser_id || winner_id === loser_id) {
     throw createError({ statusCode: 400, statusMessage: 'winner_id and loser_id are required and must differ' })
+  }
+
+  // Both must exist before anything is written: a pick is one win and one
+  // loss, never a win (and perhaps a promotion) against a loser that is gone.
+  if (!(await getItem(db, winner_id))) {
+    throw createError({ statusCode: 404, statusMessage: 'winner_id not found' })
+  }
+  if (!(await getItem(db, loser_id))) {
+    throw createError({ statusCode: 404, statusMessage: 'loser_id not found' })
   }
 
   const now = new Date().toISOString()

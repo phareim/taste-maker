@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   const next = {
     title: body?.title !== undefined ? (typeof body.title === 'string' && body.title.trim() ? body.title.trim() : null) : current.title,
-    body: body?.body !== undefined ? String(body.body).trim() : current.body,
+    body: body?.body !== undefined ? (typeof body.body === 'string' ? body.body.trim() : '') : current.body,
     source_url: body?.source_url !== undefined ? (typeof body.source_url === 'string' && body.source_url.trim() ? body.source_url.trim() : null) : current.source_url,
     creator: body?.creator !== undefined ? (typeof body.creator === 'string' && body.creator.trim() ? body.creator.trim() : null) : current.creator,
     note: body?.note !== undefined ? (typeof body.note === 'string' && body.note.trim() ? body.note.trim() : null) : current.note,

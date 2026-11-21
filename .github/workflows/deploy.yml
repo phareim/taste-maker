@@ -17,6 +17,8 @@ jobs:
 
       - run: npm install
 
+      - run: npm test
+
       - run: npm run build
 
       # Apply D1 migrations against the remote (production) database BEFORE deploy
